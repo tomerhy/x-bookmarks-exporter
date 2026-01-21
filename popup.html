@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    :root {
+      color-scheme: dark;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      width: 420px;
+      margin: 0;
+      padding: 14px;
+      background: linear-gradient(135deg, #0b0f14, #0f1622);
+      color: #e6e9ef;
+    }
+    h3 {
+      margin: 0 0 12px;
+      font-size: 14px;
+      letter-spacing: 0.2px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    #version {
+      font-size: 11px;
+      color: #7c9cff;
+      padding: 2px 6px;
+      border-radius: 999px;
+      border: 1px solid rgba(124, 156, 255, 0.4);
+      background: rgba(124, 156, 255, 0.08);
+    }
+    .actions {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+    button {
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: linear-gradient(180deg, #1a2332, #131a26);
+      color: #e6e9ef;
+      font-size: 12px;
+      letter-spacing: 0.2px;
+      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+      transition: transform 120ms ease, border-color 120ms ease;
+    }
+    button:hover {
+      transform: translateY(-1px);
+      border-color: rgba(124, 156, 255, 0.6);
+    }
+    #bookmark-count {
+      margin-top: 10px;
+      font-size: 12px;
+      color: #a3b1c6;
+    }
+    #status {
+      margin-top: 6px;
+      font-size: 12px;
+      color: #ff8686;
+    }
+  </style>
+</head>
+<body>
+  <h3>Video Gallery <span id="version"></span></h3>
+  <div class="actions">
+    <button id="auto-scroll">Auto Scroll</button>
+    <button id="auto-scroll-videos">Auto Scroll Videos</button>
+    <button id="open-gallery">Open Gallery</button>
+    <button id="copy">Copy URLs</button>
+    <button id="clear">Clear</button>
+  </div>
+  <div id="bookmark-count"></div>
+  <div id="status"></div>
+  <script src="popup.js"></script>
+</body>
+</html>
