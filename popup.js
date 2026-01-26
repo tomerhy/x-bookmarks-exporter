@@ -1,6 +1,7 @@
 const autoScrollBtn = document.getElementById("auto-scroll");
 const autoScrollVideosBtn = document.getElementById("auto-scroll-videos");
 const openGalleryBtn = document.getElementById("open-gallery");
+const donateBtn = document.getElementById("donate");
 const copyBtn = document.getElementById("copy");
 const clearBtn = document.getElementById("clear");
 const bookmarkCount = document.getElementById("bookmark-count");
@@ -157,6 +158,10 @@ autoScrollVideosBtn.onclick = () => startOrStopScroll("videos");
 
 openGalleryBtn.onclick = () => {
   chrome.tabs.create({ url: chrome.runtime.getURL("gallery.html") });
+};
+
+donateBtn.onclick = () => {
+  chrome.tabs.create({ url: "https://www.patreon.com/join/THYProduction" });
 };
 
 copyBtn.onclick = () => {

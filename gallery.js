@@ -4,6 +4,7 @@ const copyBtn = document.getElementById("copy");
 const clearBtn = document.getElementById("clear");
 const exportBtn = document.getElementById("export");
 const importBtn = document.getElementById("import");
+const donateBtn = document.getElementById("donate");
 const countEl = document.getElementById("count");
 const fileInput = document.getElementById("file-input");
 const versionEl = document.getElementById("version");
@@ -157,6 +158,10 @@ exportBtn.onclick = () => {
 importBtn.onclick = () => {
   fileInput.value = "";
   fileInput.click();
+};
+
+donateBtn.onclick = () => {
+  window.open("https://www.patreon.com/join/THYProduction", "_blank");
 };
 
 fileInput.onchange = () => {
