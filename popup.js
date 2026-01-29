@@ -65,7 +65,7 @@ const updateBookmarkCount = () => {
       typeof loadedCount === "number" ? `Loaded bookmarks: ${loadedCount}` : "";
     const totalText =
       typeof totalUrls === "number" ? `Total videos: ${totalUrls}` : "";
-    bookmarkCount.textContent = [loadedText, totalText].filter(Boolean).join(" · ");
+    bookmarkCount.textContent = [loadedText, totalText].filter(Boolean).join(" | ");
   };
 
   chrome.storage.local.get({ videoUrls: [] }, (data) => {
@@ -174,6 +174,7 @@ copyBtn.onclick = () => {
 
 clearBtn.onclick = () => {
   chrome.runtime.sendMessage({ type: "CLEAR_URLS" });
+  bookmarkCount.textContent = "Loaded bookmarks: 0 | Total videos: 0";
 };
 
 syncAutoScrollStatus();
