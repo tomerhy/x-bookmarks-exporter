@@ -6,6 +6,7 @@
     if (!url.includes("video.twimg.com")) return;
     if (url.includes("mp4a") || url.includes("avc1")) return;
     if (url.includes(".mp4") || url.includes(".m3u8")) {
+      if (!chrome?.runtime?.sendMessage) return;
       chrome.runtime.sendMessage({
         type: "VIDEO_URL",
         url

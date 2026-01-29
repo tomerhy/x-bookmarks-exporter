@@ -21,6 +21,28 @@ const normalizeUrl = (url) => {
   }
 };
 
+const extractResolution = (url) => {
+  const match = url.match(/\/vid\/(\d+)x(\d+)\//);
+  if (!match) return null;
+  return { width: Number(match[1]), height: Number(match[2]) };
+};
+
+const getBestResolution = (list) => {
+  let best = null;
+  list.forEach((candidate) => {
+    const res = extractResolution(candidate);
+    if (!res) return;
+    if (!best) {
+      best = res;
+      return;
+    }
+    if (res.width * res.height > best.width * best.height) {
+      best = res;
+    }
+  });
+  return best;
+};
+
 const setPlayer = (url) => {
   if (!url) return;
   player.src = url;
@@ -239,7 +261,10 @@ const renderGrid = (urls) => {
 
   const entries = Array.from(grouped.values()).map((list) => ({
     url: list[0],
-    count: list.length
+    count: list.length,
+    bestResolution: getBestResolution(list),
+    hasHls: list.some((u) => u.includes(".m3u8")),
+    hasMp4: list.some((u) => u.includes(".mp4"))
   }));
   countEl.textContent = `Videos: ${entries.length} (URLs: ${urls.length})`;
   setStatus("");
@@ -280,6 +305,18 @@ const renderGrid = (urls) => {
     thumb.addEventListener("loadeddata", onPreviewReady);
     thumb.addEventListener("seeked", onSeeked);
 
+    if (entry.bestResolution || entry.hasHls || entry.hasMp4) {
+      const quality = document.createElement("span");
+      quality.className = "quality-badge";
+      if (entry.bestResolution) {
+        quality.textContent = `${entry.bestResolution.height}p`;
+      } else if (entry.hasMp4) {
+        quality.textContent = "MP4";
+      } else {
+        quality.textContent = "HLS";
+      }
+      card.appendChild(quality);
+    }
     if (entry.count > 1) {
       const badge = document.createElement("span");
       badge.className = "badge";
