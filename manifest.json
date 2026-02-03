@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "X Video URL Exporter",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Extract and export video URLs from X (Twitter)",
   "icons": {
     "16": "assets/icons/icon-16.png",
@@ -17,7 +17,8 @@
   "host_permissions": [
     "https://twitter.com/*",
     "https://x.com/*",
-    "https://video.twimg.com/*"
+    "https://video.twimg.com/*",
+    "https://www.google-analytics.com/*"
   ],
   "background": {
     "service_worker": "background.js"

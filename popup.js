@@ -153,18 +153,27 @@ const startOrStopScroll = (mode) => {
   });
 };
 
-autoScrollBtn.onclick = () => startOrStopScroll("bookmarks");
-autoScrollVideosBtn.onclick = () => startOrStopScroll("videos");
+autoScrollBtn.onclick = () => {
+  if (window.Analytics) Analytics.trackButtonClick("auto_scroll_bookmarks", "popup");
+  startOrStopScroll("bookmarks");
+};
+autoScrollVideosBtn.onclick = () => {
+  if (window.Analytics) Analytics.trackButtonClick("auto_scroll_videos", "popup");
+  startOrStopScroll("videos");
+};
 
 openGalleryBtn.onclick = () => {
+  if (window.Analytics) Analytics.trackButtonClick("open_gallery", "popup");
   chrome.tabs.create({ url: chrome.runtime.getURL("gallery.html") });
 };
 
 donateBtn.onclick = () => {
+  if (window.Analytics) Analytics.trackButtonClick("donate", "popup");
   chrome.tabs.create({ url: "https://www.patreon.com/join/THYProduction" });
 };
 
 copyBtn.onclick = () => {
+  if (window.Analytics) Analytics.trackButtonClick("copy_urls", "popup");
   chrome.runtime.sendMessage({ type: "GET_URLS" }, res => {
     const urls = res?.urls || [];
     const text = urls.join("\n");
@@ -173,6 +182,7 @@ copyBtn.onclick = () => {
 };
 
 clearBtn.onclick = () => {
+  if (window.Analytics) Analytics.trackButtonClick("clear_urls", "popup");
   chrome.runtime.sendMessage({ type: "CLEAR_URLS" });
   bookmarkCount.textContent = "Loaded bookmarks: 0 | Total videos: 0";
 };
@@ -181,3 +191,8 @@ syncAutoScrollStatus();
 updateBookmarkCount();
 setInterval(updateBookmarkCount, 1500);
 setVersion();
+
+// Analytics: Track popup page view
+if (window.Analytics) {
+  Analytics.trackPageView("popup");
+}

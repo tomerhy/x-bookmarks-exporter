@@ -329,9 +329,15 @@ const renderGrid = (urls) => {
 
     downloadBtn.addEventListener("click", async (event) => {
       event.stopPropagation();
+      const isHls = url.includes(".m3u8");
+      if (window.Analytics) {
+        Analytics.trackFeatureUsage("video_download", {
+          format: isHls ? "hls" : "mp4",
+        });
+      }
       try {
         setProgress(0);
-        if (url.includes(".m3u8")) {
+        if (isHls) {
           await downloadM3u8AsMp4(url);
         } else {
           setProgress(15);
@@ -365,6 +371,7 @@ const setVersion = () => {
 };
 
 copyBtn.onclick = () => {
+  if (window.Analytics) Analytics.trackButtonClick("copy_urls", "gallery");
   chrome.storage.local.get({ videoUrls: [] }, (data) => {
     const text = (data.videoUrls || []).join("\n");
     navigator.clipboard.writeText(text).catch(() => {});
@@ -372,6 +379,7 @@ copyBtn.onclick = () => {
 };
 
 exportBtn.onclick = () => {
+  if (window.Analytics) Analytics.trackButtonClick("export_urls", "gallery");
   chrome.storage.local.get({ videoUrls: [] }, (data) => {
     const text = (data.videoUrls || []).join("\n");
     const blob = new Blob([text], { type: "text/plain" });
@@ -387,11 +395,13 @@ exportBtn.onclick = () => {
 };
 
 importBtn.onclick = () => {
+  if (window.Analytics) Analytics.trackButtonClick("import_urls", "gallery");
   fileInput.value = "";
   fileInput.click();
 };
 
 donateBtn.onclick = () => {
+  if (window.Analytics) Analytics.trackButtonClick("donate", "gallery");
   window.open("https://www.patreon.com/join/THYProduction", "_blank");
 };
 
@@ -405,6 +415,9 @@ fileInput.onchange = () => {
       .split(/\r?\n/)
       .map((line) => line.trim())
       .filter((line) => line.length);
+    if (window.Analytics) {
+      Analytics.trackFeatureUsage("import_urls", { url_count: urls.length });
+    }
     chrome.storage.local.set({ videoUrls: urls }, () => {
       renderGrid(urls);
     });
@@ -413,6 +426,7 @@ fileInput.onchange = () => {
 };
 
 clearBtn.onclick = () => {
+  if (window.Analytics) Analytics.trackButtonClick("clear_urls", "gallery");
   chrome.runtime.sendMessage({ type: "CLEAR_URLS" });
   renderGrid([]);
   player.removeAttribute("src");
@@ -428,3 +442,8 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
 
 loadUrls();
 setVersion();
+
+// Analytics: Track gallery page view
+if (window.Analytics) {
+  Analytics.trackPageView("gallery");
+}
