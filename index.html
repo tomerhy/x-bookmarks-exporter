@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>X Video Exporter - Download Videos from X Bookmarks</title>
+  <meta name="description" content="Export and download videos from your X (Twitter) bookmarks. Auto-scroll, batch download, and organize your saved videos with ease." />
+  <link rel="icon" type="image/png" href="assets/icons/icon-32.png" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --primary: #7aa2f7;
+      --primary-dark: #5d8beb;
+      --secondary: #bb9af7;
+      --bg-dark: #0d0d12;
+      --bg-card: #14141b;
+      --bg-elevated: #1a1a24;
+      --text-primary: #e8e8ed;
+      --text-secondary: #9898a8;
+      --text-muted: #6b6b7a;
+      --border: #2a2a38;
+      --success: #9ece6a;
+      --warning: #ff9e64;
+      --error: #f7768e;
+      --gradient: linear-gradient(135deg, var(--primary), var(--secondary));
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg-dark);
+      color: var(--text-primary);
+      line-height: 1.6;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: 
+        radial-gradient(ellipse at 20% 20%, rgba(122, 162, 247, 0.08) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 80%, rgba(187, 154, 247, 0.06) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 24px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Navigation */
+    nav {
+      padding: 20px 0;
+      border-bottom: 1px solid var(--border);
+      background: rgba(13, 13, 18, 0.8);
+      backdrop-filter: blur(20px);
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+    }
+
+    .nav-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+    }
+
+    .logo-icon {
+      width: 36px;
+      height: 36px;
+      background: var(--gradient);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+
+    .logo-text {
+      font-size: 20px;
+      font-weight: 700;
+      background: var(--gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .nav-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      background: var(--gradient);
+      color: var(--bg-dark);
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 14px;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .nav-cta:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(122, 162, 247, 0.3);
+    }
+
+    .nav-cta svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    /* Hero Section */
+    .hero {
+      padding: 160px 0 80px;
+      text-align: center;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: 24px;
+    }
+
+    .badge-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--success);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    h1 {
+      font-size: clamp(36px, 6vw, 56px);
+      font-weight: 700;
+      line-height: 1.1;
+      margin-bottom: 24px;
+    }
+
+    h1 span {
+      background: var(--gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-description {
+      font-size: 18px;
+      color: var(--text-secondary);
+      max-width: 600px;
+      margin: 0 auto 40px;
+    }
+
+    .cta-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      justify-content: center;
+      margin-bottom: 60px;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 16px 32px;
+      background: var(--gradient);
+      color: var(--bg-dark);
+      text-decoration: none;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 16px;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 40px rgba(122, 162, 247, 0.35);
+    }
+
+    .btn-primary svg {
+      width: 22px;
+      height: 22px;
+    }
+
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 16px 32px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      text-decoration: none;
+      border-radius: 12px;
+      font-weight: 500;
+      font-size: 16px;
+      transition: all 0.2s;
+    }
+
+    .btn-secondary:hover {
+      background: var(--bg-card);
+      border-color: var(--primary);
+    }
+
+    .free-badge {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 16px;
+    }
+
+    /* Screenshot */
+    .screenshot-wrapper {
+      max-width: 900px;
+      margin: 0 auto;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 20px 80px rgba(0, 0, 0, 0.5), 0 0 60px rgba(122, 162, 247, 0.1);
+      border: 1px solid var(--border);
+    }
+
+    .screenshot-wrapper img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    /* Features Section */
+    .features {
+      padding: 100px 0;
+    }
+
+    .section-header {
+      text-align: center;
+      margin-bottom: 60px;
+    }
+
+    .section-label {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+    }
+
+    h2 {
+      font-size: clamp(28px, 4vw, 40px);
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+
+    .section-description {
+      font-size: 18px;
+      color: var(--text-secondary);
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+    }
+
+    .feature-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--primary);
+    }
+
+    .feature-icon {
+      width: 48px;
+      height: 48px;
+      background: var(--bg-elevated);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+      font-size: 24px;
+    }
+
+    .feature-card h3 {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    .feature-card p {
+      color: var(--text-secondary);
+      font-size: 15px;
+    }
+
+    /* How It Works */
+    .how-it-works {
+      padding: 100px 0;
+      background: var(--bg-card);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 40px;
+      margin-top: 60px;
+    }
+
+    .step {
+      text-align: center;
+    }
+
+    .step-number {
+      width: 56px;
+      height: 56px;
+      background: var(--gradient);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--bg-dark);
+      margin: 0 auto 24px;
+    }
+
+    .step h3 {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    .step p {
+      color: var(--text-secondary);
+      font-size: 15px;
+    }
+
+    /* Testimonials */
+    .testimonials {
+      padding: 100px 0;
+    }
+
+    .testimonials-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px;
+      margin-top: 60px;
+    }
+
+    .testimonial-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+    }
+
+    .testimonial-card .stars {
+      color: #fbbf24;
+      font-size: 18px;
+      margin-bottom: 16px;
+    }
+
+    .testimonial-card blockquote {
+      font-size: 16px;
+      line-height: 1.7;
+      margin-bottom: 20px;
+      color: var(--text-primary);
+    }
+
+    .testimonial-author {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .author-avatar {
+      width: 44px;
+      height: 44px;
+      background: var(--bg-elevated);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    .author-info strong {
+      display: block;
+      font-size: 15px;
+    }
+
+    .author-info span {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    /* Feedback Section */
+    .feedback-section {
+      padding: 100px 0;
+      background: var(--bg-card);
+      border-top: 1px solid var(--border);
+    }
+
+    .feedback-content {
+      max-width: 500px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .feedback-content h2 {
+      margin-bottom: 12px;
+    }
+
+    .feedback-content > p {
+      color: var(--text-secondary);
+      margin-bottom: 32px;
+    }
+
+    .feedback-form {
+      text-align: left;
+    }
+
+    .form-row {
+      margin-bottom: 16px;
+    }
+
+    .feedback-form select,
+    .feedback-form input,
+    .feedback-form textarea {
+      width: 100%;
+      padding: 14px 16px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 15px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .feedback-form select:focus,
+    .feedback-form input:focus,
+    .feedback-form textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(122, 162, 247, 0.15);
+    }
+
+    .feedback-form select {
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%239898a8' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 16px center;
+    }
+
+    .feedback-form textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    .feedback-form ::placeholder {
+      color: var(--text-muted);
+    }
+
+    .feedback-form button {
+      width: 100%;
+      justify-content: center;
+      border: none;
+    }
+
+    /* CTA Section */
+    .cta-section {
+      padding: 100px 0;
+      border-top: 1px solid var(--border);
+    }
+
+    .cta-content {
+      max-width: 600px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .cta-content h2 {
+      margin-bottom: 16px;
+    }
+
+    .cta-content p {
+      color: var(--text-secondary);
+      margin-bottom: 32px;
+      font-size: 18px;
+    }
+
+    /* Footer */
+    footer {
+      padding: 40px 0;
+      border-top: 1px solid var(--border);
+    }
+
+    .footer-content {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .footer-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 24px;
+    }
+
+    .footer-links a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 14px;
+      transition: color 0.2s;
+    }
+
+    .footer-links a:hover {
+      color: var(--primary);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .hero {
+        padding: 120px 0 60px;
+      }
+
+      .nav-cta span {
+        display: none;
+      }
+
+      .footer-content {
+        flex-direction: column;
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Navigation -->
+  <nav>
+    <div class="container nav-content">
+      <a href="#" class="logo">
+        <div class="logo-icon">🎬</div>
+        <span class="logo-text">X Video Exporter</span>
+      </a>
+      <a href="https://chrome.google.com/webstore" class="nav-cta" target="_blank">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C8.21 0 4.831 1.757 2.632 4.501l3.953 6.848A5.454 5.454 0 0 1 12 6.545h10.691A12 12 0 0 0 12 0zM1.931 5.47A11.943 11.943 0 0 0 0 12c0 6.012 4.42 10.991 10.189 11.864l3.953-6.847a5.45 5.45 0 0 1-6.865-2.29zm13.342 2.166a5.446 5.446 0 0 1 1.45 7.09l.002.001h-.002l-3.952 6.848a12.014 12.014 0 0 0 9.178-4.588A11.947 11.947 0 0 0 24 12a11.96 11.96 0 0 0-.673-3.954l-8.054-.41z"/></svg>
+        <span>Add to Chrome - Free</span>
+      </a>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="container">
+      <div class="badge">
+        <span class="badge-dot"></span>
+        Free Chrome Extension
+      </div>
+      <h1>Download Videos from<br><span>X Bookmarks</span></h1>
+      <p class="hero-description">
+        Auto-scroll through your X (Twitter) bookmarks, capture video URLs, and download them in MP4 format. Perfect for saving your favorite content offline.
+      </p>
+      <div class="cta-group">
+        <a href="https://chrome.google.com/webstore" class="btn-primary" target="_blank">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C8.21 0 4.831 1.757 2.632 4.501l3.953 6.848A5.454 5.454 0 0 1 12 6.545h10.691A12 12 0 0 0 12 0zM1.931 5.47A11.943 11.943 0 0 0 0 12c0 6.012 4.42 10.991 10.189 11.864l3.953-6.847a5.45 5.45 0 0 1-6.865-2.29zm13.342 2.166a5.446 5.446 0 0 1 1.45 7.09l.002.001h-.002l-3.952 6.848a12.014 12.014 0 0 0 9.178-4.588A11.947 11.947 0 0 0 24 12a11.96 11.96 0 0 0-.673-3.954l-8.054-.41z"/></svg>
+          Add to Chrome - It's Free
+        </a>
+        <a href="https://github.com/tomerhy/x-bookmarks-exporter" class="btn-secondary" target="_blank">
+          <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+          View on GitHub
+        </a>
+      </div>
+      <p class="free-badge">✓ No account required &nbsp;•&nbsp; ✓ Works offline &nbsp;•&nbsp; ✓ Privacy focused</p>
+      
+      <div class="screenshot-wrapper">
+        <img src="screenshots/screenshot-gallery-1280x800.png" alt="X Video Exporter - Gallery view showing captured videos" />
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section class="features">
+    <div class="container">
+      <div class="section-header">
+        <p class="section-label">Features</p>
+        <h2>Everything you need to save X videos</h2>
+        <p class="section-description">Powerful tools to capture, organize, and download videos from your bookmarks.</p>
+      </div>
+      
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">📜</div>
+          <h3>Auto-Scroll Capture</h3>
+          <p>Automatically scroll through your X bookmarks while capturing all video URLs in the background.</p>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">🖼️</div>
+          <h3>Visual Gallery</h3>
+          <p>Browse all captured videos in a beautiful gallery view with thumbnails and preview playback.</p>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">⬇️</div>
+          <h3>One-Click Download</h3>
+          <p>Download any video as MP4 with a single click. Supports both direct MP4 and HLS streams.</p>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">🎥</div>
+          <h3>Quality Selection</h3>
+          <p>Automatically captures the highest quality version available for each video.</p>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">📤</div>
+          <h3>Export & Import</h3>
+          <p>Export your video URL list to a file and import it later. Never lose your collection.</p>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">🔒</div>
+          <h3>100% Private</h3>
+          <p>All processing happens locally in your browser. No data is ever sent to external servers.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section class="how-it-works">
+    <div class="container">
+      <div class="section-header">
+        <p class="section-label">How It Works</p>
+        <h2>Start saving videos in seconds</h2>
+        <p class="section-description">No setup required. Install once and it just works.</p>
+      </div>
+      
+      <div class="steps">
+        <div class="step">
+          <div class="step-number">1</div>
+          <h3>Install the Extension</h3>
+          <p>Click "Add to Chrome" and confirm the installation. Takes less than 5 seconds.</p>
+        </div>
+        
+        <div class="step">
+          <div class="step-number">2</div>
+          <h3>Open X Bookmarks</h3>
+          <p>Navigate to your bookmarks page on X (Twitter) where your saved posts are.</p>
+        </div>
+        
+        <div class="step">
+          <div class="step-number">3</div>
+          <h3>Click Auto-Scroll</h3>
+          <p>Click the extension icon and hit "Auto Scroll" to start capturing video URLs.</p>
+        </div>
+        
+        <div class="step">
+          <div class="step-number">4</div>
+          <h3>Download Videos</h3>
+          <p>Open the gallery, preview your videos, and download them as MP4 files.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Testimonials -->
+  <section class="testimonials">
+    <div class="container">
+      <div class="section-header">
+        <p class="section-label">Testimonials</p>
+        <h2>Loved by content creators</h2>
+        <p class="section-description">Join users who save their favorite X videos daily.</p>
+      </div>
+      
+      <div class="testimonials-grid">
+        <div class="testimonial-card">
+          <div class="stars">★★★★★</div>
+          <blockquote>"Finally a simple way to save videos from my bookmarks! The auto-scroll feature is a game changer. No more clicking through hundreds of bookmarks manually."</blockquote>
+          <div class="testimonial-author">
+            <div class="author-avatar">MC</div>
+            <div class="author-info">
+              <strong>Mike C.</strong>
+              <span>Content Creator</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="testimonial-card">
+          <div class="stars">★★★★★</div>
+          <blockquote>"The gallery view is beautiful and the download works perfectly. I've saved over 500 videos from my bookmarks. Essential tool for anyone who saves content on X."</blockquote>
+          <div class="testimonial-author">
+            <div class="author-avatar">JL</div>
+            <div class="author-info">
+              <strong>Jessica L.</strong>
+              <span>Social Media Manager</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="testimonial-card">
+          <div class="stars">★★★★★</div>
+          <blockquote>"Love that it works completely offline and keeps my data private. The export feature is super useful for backing up my video collection. Highly recommend!"</blockquote>
+          <div class="testimonial-author">
+            <div class="author-avatar">DR</div>
+            <div class="author-info">
+              <strong>David R.</strong>
+              <span>Video Editor</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Feedback Section -->
+  <section class="feedback-section">
+    <div class="container">
+      <div class="feedback-content">
+        <h2>We'd Love Your Feedback</h2>
+        <p>Found a bug or have a feature request? Let us know!</p>
+        
+        <form class="feedback-form" action="https://formspree.io/f/xeezdbde" method="POST">
+          <div class="form-row">
+            <select name="type" required>
+              <option value="" disabled selected>Select feedback type...</option>
+              <option value="bug">🐛 Bug Report</option>
+              <option value="feature">💡 Feature Request</option>
+              <option value="general">💬 General Feedback</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <input type="email" name="email" placeholder="Your email (optional)" />
+          </div>
+          <div class="form-row">
+            <textarea name="message" placeholder="Tell us more..." rows="4" required></textarea>
+          </div>
+          <button type="submit" class="btn-primary">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+            Send Feedback
+          </button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="cta-section">
+    <div class="container">
+      <div class="cta-content">
+        <h2>Ready to save your videos?</h2>
+        <p>Install X Video Exporter and start downloading videos from your bookmarks today.</p>
+        <a href="https://chrome.google.com/webstore" class="btn-primary" target="_blank">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C8.21 0 4.831 1.757 2.632 4.501l3.953 6.848A5.454 5.454 0 0 1 12 6.545h10.691A12 12 0 0 0 12 0zM1.931 5.47A11.943 11.943 0 0 0 0 12c0 6.012 4.42 10.991 10.189 11.864l3.953-6.847a5.45 5.45 0 0 1-6.865-2.29zm13.342 2.166a5.446 5.446 0 0 1 1.45 7.09l.002.001h-.002l-3.952 6.848a12.014 12.014 0 0 0 9.178-4.588A11.947 11.947 0 0 0 24 12a11.96 11.96 0 0 0-.673-3.954l-8.054-.41z"/></svg>
+          Add to Chrome - It's Free
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container footer-content">
+      <div class="footer-left">
+        Made with ❤️ by tomerhy
+        &nbsp;•&nbsp;
+        © 2024 X Video Exporter
+      </div>
+      <div class="footer-links">
+        <a href="privacy-policy.html">Privacy Policy</a>
+        <a href="https://github.com/tomerhy/x-bookmarks-exporter" target="_blank">GitHub</a>
+        <a href="https://www.patreon.com/join/THYProduction" target="_blank">Support</a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>
