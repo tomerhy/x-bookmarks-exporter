@@ -93,12 +93,14 @@
     .logo-icon {
       width: 36px;
       height: 36px;
-      background: var(--gradient);
       border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 20px;
+      overflow: hidden;
+    }
+
+    .logo-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
     }
 
     .logo-text {
@@ -596,7 +598,7 @@
   <nav>
     <div class="container nav-content">
       <a href="#" class="logo">
-        <div class="logo-icon">🎬</div>
+        <div class="logo-icon"><img src="assets/icons/icon-128.png" alt="X Video Exporter" /></div>
         <span class="logo-text">X Video Exporter</span>
       </a>
       <a href="https://chrome.google.com/webstore" class="nav-cta" target="_blank">
