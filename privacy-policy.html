@@ -10,16 +10,18 @@
       max-width: 820px;
       padding: 0 20px;
       color: #111;
+      background: #fafafa;
     }
     h1 { margin-bottom: 8px; }
-    h2 { margin-top: 24px; }
-    p, li { line-height: 1.5; }
+    h2 { margin-top: 24px; color: #333; }
+    p, li { line-height: 1.6; }
+    code { background: #e8e8e8; padding: 2px 6px; border-radius: 4px; }
   </style>
 </head>
 <body>
   <h1>Privacy Policy</h1>
   <p><strong>App:</strong> X Video URL Exporter (THY Production)</p>
-  <p><strong>Last updated:</strong> 2026-01-21</p>
+  <p><strong>Last updated:</strong> 2026-02-03</p>
 
   <h2>Overview</h2>
   <p>
@@ -29,30 +31,63 @@
 
   <h2>Data We Collect</h2>
   <ul>
-    <li>Video URLs from pages you visit on x.com or twitter.com.</li>
+    <li><strong>Video URLs:</strong> From pages you visit on x.com or twitter.com. Stored locally only.</li>
+    <li><strong>Analytics data:</strong> Anonymous usage statistics including page views, button clicks, and feature usage. No personal information is collected.</li>
   </ul>
 
   <h2>How We Use Data</h2>
   <ul>
     <li>To show the gallery view and allow export/copy of captured URLs.</li>
     <li>To enable batch auto-scroll for bookmarks and channel pages.</li>
+    <li>To understand how users interact with the extension and improve the experience.</li>
   </ul>
 
   <h2>Data Storage</h2>
   <p>
-    All data is stored locally in your browser using <code>chrome.storage.local</code>.
-    We do not transmit, sell, or share your data with any third party.
+    Video URLs are stored locally in your browser using <code>chrome.storage.local</code>.
+    We do not transmit your video URLs to any third party.
+  </p>
+
+  <h2>Analytics</h2>
+  <p>
+    We use Google Analytics 4 to collect anonymous usage statistics. This helps us understand
+    which features are popular and how to improve the extension. The analytics data includes:
+  </p>
+  <ul>
+    <li>Page views (popup opened, gallery opened)</li>
+    <li>Button clicks (which buttons are used)</li>
+    <li>Feature usage (downloads, exports, imports)</li>
+    <li>Extension version</li>
+  </ul>
+  <p>
+    <strong>We do NOT collect:</strong> Video URLs, personal information, browsing history,
+    or any content from your X/Twitter account.
   </p>
 
   <h2>Permissions Justification</h2>
   <ul>
-    <li><strong>Host permissions</strong> (x.com, twitter.com, video.twimg.com): required to detect video URLs and load media hosted on X.</li>
-    <li><strong>Storage</strong>: required to save captured URLs locally.</li>
-    <li><strong>Tabs</strong>: required to open the gallery in a new tab and interact with the active tab.</li>
-    <li><strong>Scripting</strong>: required to inject the content script when you start auto-scroll.</li>
+    <li><strong>Host permissions</strong> (x.com, twitter.com, video.twimg.com): Required to detect video URLs and load media hosted on X.</li>
+    <li><strong>Host permissions</strong> (google-analytics.com): Required to send anonymous analytics data.</li>
+    <li><strong>Storage</strong>: Required to save captured URLs locally.</li>
+    <li><strong>Tabs</strong>: Required to open the gallery in a new tab and interact with the active tab.</li>
+    <li><strong>Scripting</strong>: Required to inject the content script when you start auto-scroll.</li>
   </ul>
+
+  <h2>Third-Party Services</h2>
+  <p>
+    This extension uses Google Analytics 4 for anonymous usage statistics. 
+    Google's privacy policy can be found at: 
+    <a href="https://policies.google.com/privacy" target="_blank">https://policies.google.com/privacy</a>
+  </p>
+
+  <h2>Your Rights</h2>
+  <p>
+    You can clear all locally stored data at any time by clicking the "Clear" button in the extension
+    or by removing the extension from your browser.
+  </p>
 
   <h2>Contact</h2>
   <p>If you have any questions, contact: THY Production</p>
+  <p>GitHub: <a href="https://github.com/tomerhy/x-bookmarks-exporter" target="_blank">https://github.com/tomerhy/x-bookmarks-exporter</a></p>
 </body>
 </html>
