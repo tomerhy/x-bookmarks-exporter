@@ -8,8 +8,8 @@
  * 4. Replace the values below
  */
 
-const GA_MEASUREMENT_ID = "G-4B1JXY3KZE"; // Replace with your GA4 Measurement ID
-const GA_API_SECRET = "hS-itJ0vQliKfeMelVw97Q"; // Replace with your GA4 API Secret
+const GA_MEASUREMENT_ID = "G-3Y5DZ4PF77"; // Replace with your GA4 Measurement ID
+const GA_API_SECRET = "evj51tULQ-KpgmYbb9yjew"; // Replace with your GA4 API Secret
 
 const GA_ENDPOINT = `https://www.google-analytics.com/mp/collect?measurement_id=${GA_MEASUREMENT_ID}&api_secret=${GA_API_SECRET}`;
 
