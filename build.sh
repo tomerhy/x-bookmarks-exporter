@@ -16,6 +16,8 @@ zip -r "$OUTPUT_DIR/$ZIP_NAME" \
   gallery.html \
   gallery.js \
   analytics.js \
+  i18n.js \
+  _locales \
   assets/icons
 
 echo "Built $OUTPUT_DIR/$ZIP_NAME"
