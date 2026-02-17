@@ -21,6 +21,12 @@
       display: flex;
       align-items: center;
       gap: 10px;
+      justify-content: space-between;
+    }
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
     #version {
       font-size: 12px;
@@ -29,6 +35,23 @@
       border-radius: 999px;
       border: 1px solid rgba(124, 156, 255, 0.4);
       background: rgba(124, 156, 255, 0.08);
+    }
+    #header-donate {
+      background: linear-gradient(180deg, #f2d27a, #caa13a);
+      color: #1a1406;
+      border-color: rgba(255, 221, 140, 0.8);
+      box-shadow: 0 8px 20px rgba(202, 161, 58, 0.35);
+      padding: 8px 16px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 221, 140, 0.8);
+      font-size: 13px;
+      letter-spacing: 0.2px;
+      cursor: pointer;
+      transition: transform 120ms ease, border-color 120ms ease;
+    }
+    #header-donate:hover {
+      border-color: rgba(255, 236, 180, 0.95);
+      transform: translateY(-1px);
     }
     #layout {
       display: flex;
@@ -160,16 +183,6 @@
       transform: translateY(-1px);
       border-color: rgba(124, 156, 255, 0.6);
     }
-    #donate {
-      background: linear-gradient(180deg, #f2d27a, #caa13a);
-      color: #1a1406;
-      border-color: rgba(255, 221, 140, 0.8);
-      box-shadow: 0 10px 24px rgba(202, 161, 58, 0.35);
-    }
-    #donate:hover {
-      border-color: rgba(255, 236, 180, 0.95);
-      transform: translateY(-2px);
-    }
     #file-input { display: none; }
     #count { margin-top: 10px; font-size: 12px; color: #a3b1c6; }
     #status { margin-top: 6px; font-size: 12px; color: #7c9cff; }
@@ -187,24 +200,49 @@
       background: linear-gradient(90deg, #7c9cff, #c2d2ff);
       transition: width 120ms ease;
     }
+    #lang-selector {
+      margin-top: 8px;
+      padding: 6px 8px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: linear-gradient(180deg, #1a2332, #131a26);
+      color: #e6e9ef;
+      font-size: 11px;
+      cursor: pointer;
+      width: 100%;
+    }
+    #lang-selector:hover {
+      border-color: rgba(124, 156, 255, 0.6);
+    }
   </style>
 </head>
 <body>
-  <h2>Video Gallery <span id="version"></span></h2>
+  <h2>
+    <div class="header-left">
+      <span data-i18n="videoGallery">Video Gallery</span>
+      <span id="version"></span>
+    </div>
+    <button id="header-donate" data-i18n="donate">Donate</button>
+  </h2>
   <div id="layout">
     <div id="player-wrap">
       <video id="player" controls></video>
     <div class="actions">
-        <button id="export">Export URLs</button>
-      <button id="import">Import URLs</button>
-        <button id="copy">Copy URLs</button>
-      <button id="donate">Donate</button>
-        <button id="clear">Clear</button>
+        <button id="export" data-i18n="exportUrls">Export URLs</button>
+      <button id="import" data-i18n="importUrls">Import URLs</button>
+        <button id="copy" data-i18n="copyUrls">Copy URLs</button>
+        <button id="clear" data-i18n="clear">Clear</button>
       </div>
     <label class="toggle">
       <input id="mp4-only" type="checkbox" checked />
-      MP4 only
+      <span data-i18n="mp4Only">MP4 only</span>
     </label>
+      <select id="lang-selector">
+        <option value="en">English</option>
+        <option value="fr">Français</option>
+        <option value="de">Deutsch</option>
+        <option value="es">Español</option>
+      </select>
       <div id="count"></div>
     <div id="status"></div>
     <div id="progress"><div id="progress-bar"></div></div>
@@ -212,6 +250,7 @@
     </div>
     <div id="grid"></div>
   </div>
+  <script src="i18n.js"></script>
   <script src="analytics.js"></script>
   <script src="gallery.js"></script>
 </body>

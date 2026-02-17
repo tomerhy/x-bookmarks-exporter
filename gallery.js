@@ -4,13 +4,14 @@ const copyBtn = document.getElementById("copy");
 const clearBtn = document.getElementById("clear");
 const exportBtn = document.getElementById("export");
 const importBtn = document.getElementById("import");
-const donateBtn = document.getElementById("donate");
+const donateBtn = document.getElementById("header-donate");
 const mp4OnlyToggle = document.getElementById("mp4-only");
 const countEl = document.getElementById("count");
 const statusEl = document.getElementById("status");
 const progressBar = document.getElementById("progress-bar");
 const fileInput = document.getElementById("file-input");
 const versionEl = document.getElementById("version");
+const langSelector = document.getElementById("lang-selector");
 
 const normalizeUrl = (url) => {
   try {
@@ -99,7 +100,7 @@ const parseSegments = (text) => {
 
 const fetchText = async (url) => {
   const response = await fetch(url);
-  if (!response.ok) throw new Error("Failed to load playlist");
+  if (!response.ok) throw new Error(I18n.getMessage("failedToLoadPlaylist", "Failed to load playlist"));
   return response.text();
 };
 
@@ -113,7 +114,7 @@ const fetchSegments = async (urls, concurrency, onProgress) => {
       const current = index;
       index += 1;
       const response = await fetch(urls[current]);
-      if (!response.ok) throw new Error("Failed to download segment");
+      if (!response.ok) throw new Error(I18n.getMessage("failedToDownloadSegment", "Failed to download segment"));
       const buffer = await response.arrayBuffer();
       results[current] = new Uint8Array(buffer);
       completed += 1;
@@ -142,7 +143,7 @@ const concatBuffers = (buffers) => {
 
 const downloadMp4 = async (url, filenameOverride) => {
   const response = await fetch(url);
-  if (!response.ok) throw new Error("Failed to download MP4");
+  if (!response.ok) throw new Error(I18n.getMessage("failedToDownloadMp4", "Failed to download MP4"));
   const blob = await response.blob();
   const fallback = url.split("/").pop()?.split("?")[0] || "video.mp4";
   const name = filenameOverride || (fallback.endsWith(".mp4") ? fallback : `${fallback}.mp4`);
@@ -156,31 +157,31 @@ const downloadMp4 = async (url, filenameOverride) => {
 };
 
 const downloadM3u8AsMp4 = async (url) => {
-  setStatus("Loading playlist...");
+  setStatus(I18n.getMessage("loadingPlaylist", "Loading playlist..."));
   setProgress(2);
   let playlistUrl = url;
   let text = await fetchText(playlistUrl);
-  if (text.includes("#EXT-X-KEY")) throw new Error("Encrypted HLS not supported.");
+  if (text.includes("#EXT-X-KEY")) throw new Error(I18n.getMessage("encryptedHlsNotSupported", "Encrypted HLS not supported."));
 
   const variant = parseVariantPlaylist(text);
   if (variant) {
     playlistUrl = resolveUrl(playlistUrl, variant);
     text = await fetchText(playlistUrl);
-    if (text.includes("#EXT-X-KEY")) throw new Error("Encrypted HLS not supported.");
+    if (text.includes("#EXT-X-KEY")) throw new Error(I18n.getMessage("encryptedHlsNotSupported", "Encrypted HLS not supported."));
   }
 
   const initSegment = parseInitSegment(text);
   if (!initSegment) {
-    throw new Error("Only fMP4 playlists (EXT-X-MAP) are supported.");
+    throw new Error(I18n.getMessage("onlyFmp4Supported", "Only fMP4 playlists (EXT-X-MAP) are supported."));
   }
 
   const segmentUrls = parseSegments(text).map((seg) =>
     resolveUrl(playlistUrl, seg)
   );
-  if (!segmentUrls.length) throw new Error("No segments found.");
+  if (!segmentUrls.length) throw new Error(I18n.getMessage("noSegmentsFound", "No segments found."));
 
   const initUrl = resolveUrl(playlistUrl, initSegment);
-  setStatus(`Downloading ${segmentUrls.length} segments...`);
+  setStatus(`${I18n.getMessage("downloadingSegments", "Downloading segments...")} ${segmentUrls.length}`);
   setProgress(5);
   const initBuffer = await fetch(initUrl).then((r) => r.arrayBuffer());
   const segments = await fetchSegments(
@@ -188,13 +189,13 @@ const downloadM3u8AsMp4 = async (url) => {
     4,
     (done, total) => {
       if (done % 10 === 0 || done === total) {
-        setStatus(`Downloading segments... ${done}/${total}`);
+        setStatus(`${I18n.getMessage("downloadingSegments", "Downloading segments...")} ${done}/${total}`);
       }
       setProgress(5 + Math.round((done / total) * 75));
     }
   );
 
-  setStatus("Muxing to MP4...");
+  setStatus(I18n.getMessage("muxingToMp4", "Muxing to MP4..."));
   setProgress(90);
   const merged = concatBuffers([new Uint8Array(initBuffer), ...segments]);
   const blob = new Blob([merged], { type: "video/mp4" });
@@ -207,7 +208,7 @@ const downloadM3u8AsMp4 = async (url) => {
   link.click();
   link.remove();
   URL.revokeObjectURL(link.href);
-  setStatus("Download complete.");
+  setStatus(I18n.getMessage("downloadComplete", "Download complete."));
   setProgress(100);
 };
 
@@ -244,11 +245,11 @@ const renderGrid = (urls) => {
   grid.innerHTML = "";
   if (!urls.length) {
     const empty = document.createElement("div");
-    empty.textContent = "No videos captured yet.";
+    empty.textContent = I18n.getMessage("noVideosYet", "No videos captured yet.");
     empty.style.fontSize = "13px";
     empty.style.color = "#666";
     grid.appendChild(empty);
-    countEl.textContent = "Videos: 0 (URLs: 0)";
+    countEl.textContent = `${I18n.getMessage("videos", "Videos")}: 0 (${I18n.getMessage("urls", "URLs")}: 0)`;
     return;
   }
 
@@ -266,7 +267,7 @@ const renderGrid = (urls) => {
     hasHls: list.some((u) => u.includes(".m3u8")),
     hasMp4: list.some((u) => u.includes(".mp4"))
   }));
-  countEl.textContent = `Videos: ${entries.length} (URLs: ${urls.length})`;
+  countEl.textContent = `${I18n.getMessage("videos", "Videos")}: ${entries.length} (${I18n.getMessage("urls", "URLs")}: ${urls.length})`;
   setStatus("");
 
   entries.forEach((entry, index) => {
@@ -280,7 +281,7 @@ const renderGrid = (urls) => {
     const downloadBtn = document.createElement("button");
     downloadBtn.className = "card-btn";
     downloadBtn.type = "button";
-    downloadBtn.title = "Download MP4";
+    downloadBtn.title = I18n.getMessage("downloadMp4", "Download MP4");
     downloadBtn.textContent = "⬇";
     cardActions.appendChild(downloadBtn);
 
@@ -342,11 +343,11 @@ const renderGrid = (urls) => {
         } else {
           setProgress(15);
           await downloadMp4(url);
-          setStatus("Download complete.");
+          setStatus(I18n.getMessage("downloadComplete", "Download complete."));
           setProgress(100);
         }
       } catch (error) {
-        setStatus(error?.message || "Download failed.");
+        setStatus(error?.message || I18n.getMessage("downloadFailed", "Download failed."));
         setProgress(0);
       }
     });
@@ -440,10 +441,40 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
   }
 });
 
-loadUrls();
-setVersion();
+// Language selector
+langSelector.onchange = async () => {
+  const newLang = langSelector.value;
+  const success = await I18n.setLanguage(newLang);
+  if (success) {
+    translatePage();
+    // Re-render grid to update translated messages
+    chrome.storage.local.get({ videoUrls: [] }, (data) => {
+      renderGrid(data.videoUrls || []);
+    });
+  }
+};
 
-// Analytics: Track gallery page view
-if (window.Analytics) {
-  Analytics.trackPageView("gallery");
-}
+// Translate all elements with data-i18n attribute
+const translatePage = () => {
+  document.querySelectorAll("[data-i18n]").forEach((el) => {
+    const key = el.getAttribute("data-i18n");
+    el.textContent = I18n.getMessage(key, el.textContent);
+  });
+};
+
+// Initialize i18n and UI
+const initializeGallery = async () => {
+  await I18n.init();
+  const currentLang = I18n.getCurrentLanguage();
+  langSelector.value = currentLang;
+  translatePage();
+  loadUrls();
+  setVersion();
+  
+  // Analytics: Track gallery page view
+  if (window.Analytics) {
+    Analytics.trackPageView("gallery");
+  }
+};
+
+initializeGallery();

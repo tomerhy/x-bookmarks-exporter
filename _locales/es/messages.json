@@ -1,0 +1,116 @@
+{
+  "extName": {
+    "message": "Exportador de URL de video X"
+  },
+  "extDescription": {
+    "message": "Extraer y exportar URLs de video de X (Twitter)"
+  },
+  "videoGallery": {
+    "message": "Galeria de Videos"
+  },
+  "autoScroll": {
+    "message": "Desplazamiento Auto"
+  },
+  "autoScrollVideos": {
+    "message": "Desplazamiento Auto Videos"
+  },
+  "openGallery": {
+    "message": "Abrir Galería"
+  },
+  "donate": {
+    "message": "Donar"
+  },
+  "copyUrls": {
+    "message": "Copiar URLs"
+  },
+  "clear": {
+    "message": "Limpiar"
+  },
+  "exportUrls": {
+    "message": "Exportar URLs"
+  },
+  "importUrls": {
+    "message": "Importar URLs"
+  },
+  "mp4Only": {
+    "message": "Solo MP4"
+  },
+  "startBookmarksScroll": {
+    "message": "Iniciar Desplazamiento Marcadores"
+  },
+  "stopBookmarksScroll": {
+    "message": "Detener Desplazamiento Marcadores"
+  },
+  "startVideosScroll": {
+    "message": "Iniciar Desplazamiento Videos"
+  },
+  "stopVideosScroll": {
+    "message": "Detener Desplazamiento Videos"
+  },
+  "loadedBookmarks": {
+    "message": "Marcadores cargados"
+  },
+  "totalVideos": {
+    "message": "Total de videos"
+  },
+  "openBookmarksFirst": {
+    "message": "Abre primero tu pagina de Marcadores de X."
+  },
+  "unableToConnect": {
+    "message": "No se puede conectar a la pagina. Recarga e intenta de nuevo."
+  },
+  "noVideosYet": {
+    "message": "Aun no se han capturado videos."
+  },
+  "videos": {
+    "message": "Videos"
+  },
+  "urls": {
+    "message": "URLs"
+  },
+  "downloadMp4": {
+    "message": "Descargar MP4"
+  },
+  "loadingPlaylist": {
+    "message": "Cargando lista de reproduccion..."
+  },
+  "downloadingSegments": {
+    "message": "Descargando segmentos..."
+  },
+  "muxingToMp4": {
+    "message": "Convirtiendo a MP4..."
+  },
+  "downloadComplete": {
+    "message": "Descarga completa."
+  },
+  "downloadFailed": {
+    "message": "Descarga fallida."
+  },
+  "encryptedHlsNotSupported": {
+    "message": "HLS encriptado no compatible."
+  },
+  "onlyFmp4Supported": {
+    "message": "Solo se admiten listas de reproduccion fMP4 (EXT-X-MAP)."
+  },
+  "noSegmentsFound": {
+    "message": "No se encontraron segmentos."
+  },
+  "failedToLoadPlaylist": {
+    "message": "Error al cargar la lista de reproduccion"
+  },
+  "failedToDownloadSegment": {
+    "message": "Error al descargar el segmento"
+  },
+  "failedToDownloadMp4": {
+    "message": "Error al descargar MP4"
+  },
+  "language": {
+    "message": "Idioma"
+  },
+  "loadedItems": {
+    "message": "Elementos Cargados"
+  },
+  "stopScroll": {
+    "message": "Detener Desplazamiento"
+  }
+}

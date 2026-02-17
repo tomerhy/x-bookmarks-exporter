@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="utf-8" />
   <style>
     :root {
       color-scheme: dark;
@@ -20,6 +21,12 @@
       display: flex;
       align-items: center;
       gap: 8px;
+      justify-content: space-between;
+    }
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
     #version {
       font-size: 11px;
@@ -29,9 +36,26 @@
       border: 1px solid rgba(124, 156, 255, 0.4);
       background: rgba(124, 156, 255, 0.08);
     }
+    #header-donate {
+      background: linear-gradient(180deg, #f2d27a, #caa13a);
+      color: #1a1406;
+      border-color: rgba(255, 221, 140, 0.8);
+      box-shadow: 0 8px 20px rgba(202, 161, 58, 0.35);
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 221, 140, 0.8);
+      font-size: 11px;
+      letter-spacing: 0.2px;
+      cursor: pointer;
+      transition: transform 120ms ease, border-color 120ms ease;
+    }
+    #header-donate:hover {
+      border-color: rgba(255, 236, 180, 0.95);
+      transform: translateY(-1px);
+    }
     .actions {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(3, 1fr);
       gap: 8px;
     }
     button {
@@ -50,40 +74,188 @@
       transform: translateY(-1px);
       border-color: rgba(124, 156, 255, 0.6);
     }
-    #donate {
-      background: linear-gradient(180deg, #f2d27a, #caa13a);
-      color: #1a1406;
-      border-color: rgba(255, 221, 140, 0.8);
-      box-shadow: 0 10px 24px rgba(202, 161, 58, 0.35);
+    #stats {
+      margin-top: 12px;
     }
-    #donate:hover {
-      border-color: rgba(255, 236, 180, 0.95);
-      transform: translateY(-2px);
+    .stat-card {
+      padding: 12px 14px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #1a2332, #141b28);
+      border: 1px solid rgba(124, 156, 255, 0.15);
+      text-align: center;
     }
-    #bookmark-count {
-      margin-top: 10px;
-      font-size: 12px;
+    .stat-value {
+      font-size: 28px;
+      font-weight: 600;
+      color: #7c9cff;
+      display: block;
+      margin-bottom: 4px;
+    }
+    .stat-label {
+      font-size: 11px;
       color: #a3b1c6;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
     #status {
-      margin-top: 6px;
-      font-size: 12px;
+      margin-top: 8px;
+      font-size: 11px;
       color: #ff8686;
+      text-align: center;
+    }
+    #lang-selector {
+      margin-top: 10px;
+      padding: 6px 8px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: linear-gradient(180deg, #1a2332, #131a26);
+      color: #e6e9ef;
+      font-size: 11px;
+      cursor: pointer;
+      width: 100%;
+    }
+    #lang-selector:hover {
+      border-color: rgba(124, 156, 255, 0.6);
+    }
+    
+    /* Auto Scroll Animation */
+    @keyframes pulse-glow {
+      0%, 100% {
+        box-shadow: 0 0 5px rgba(255, 107, 107, 0.4),
+                    0 0 10px rgba(255, 107, 107, 0.3),
+                    0 0 15px rgba(255, 107, 107, 0.2);
+        transform: scale(1);
+      }
+      50% {
+        box-shadow: 0 0 10px rgba(255, 107, 107, 0.6),
+                    0 0 20px rgba(255, 107, 107, 0.4),
+                    0 0 30px rgba(255, 107, 107, 0.3);
+        transform: scale(1.02);
+      }
+    }
+    
+    @keyframes gradient-shift {
+      0% {
+        background-position: 0% 50%;
+      }
+      50% {
+        background-position: 100% 50%;
+      }
+      100% {
+        background-position: 0% 50%;
+      }
+    }
+    
+    @keyframes dot-pulse {
+      0% {
+        box-shadow: 
+          0 0 0 0 rgba(255, 255, 255, 0.3),
+          6px 0 0 0 rgba(255, 255, 255, 0.95),
+          12px 0 0 0 rgba(255, 255, 255, 0.3);
+      }
+      33% {
+        box-shadow: 
+          0 0 0 0 rgba(255, 255, 255, 0.95),
+          6px 0 0 0 rgba(255, 255, 255, 0.3),
+          12px 0 0 0 rgba(255, 255, 255, 0.3);
+      }
+      66% {
+        box-shadow: 
+          0 0 0 0 rgba(255, 255, 255, 0.3),
+          6px 0 0 0 rgba(255, 255, 255, 0.3),
+          12px 0 0 0 rgba(255, 255, 255, 0.95);
+      }
+      100% {
+        box-shadow: 
+          0 0 0 0 rgba(255, 255, 255, 0.3),
+          6px 0 0 0 rgba(255, 255, 255, 0.95),
+          12px 0 0 0 rgba(255, 255, 255, 0.3);
+      }
+    }
+    
+    @keyframes shine {
+      0% {
+        left: -100%;
+      }
+      100% {
+        left: 200%;
+      }
+    }
+    
+    .scrolling-active {
+      background: linear-gradient(
+        270deg,
+        #ff6b6b,
+        #ff8787,
+        #ff5252,
+        #ff6b6b
+      );
+      background-size: 400% 400%;
+      animation: pulse-glow 2s ease-in-out infinite, gradient-shift 3s ease infinite;
+      position: relative;
+      overflow: hidden;
+      padding-left: 28px;
+    }
+    
+    /* Animated dots indicator */
+    .scrolling-active::before {
+      content: "";
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      width: 4px;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      transform: translateY(-50%);
+      animation: dot-pulse 1.5s ease-in-out infinite;
+    }
+    
+    /* Shine effect */
+    .scrolling-active::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 50%;
+      height: 100%;
+      background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.2),
+        transparent
+      );
+      animation: shine 2s ease-in-out infinite;
     }
   </style>
 </head>
 <body>
-  <h3>Video Gallery <span id="version"></span></h3>
+  <h3>
+    <div class="header-left">
+      <span data-i18n="videoGallery">Video Gallery</span>
+      <span id="version"></span>
+    </div>
+    <button id="header-donate" data-i18n="donate">Donate</button>
+  </h3>
   <div class="actions">
-    <button id="auto-scroll">Auto Scroll</button>
-    <button id="auto-scroll-videos">Auto Scroll Videos</button>
-    <button id="open-gallery">Open Gallery</button>
-    <button id="donate">Donate</button>
-    <button id="copy">Copy URLs</button>
-    <button id="clear">Clear</button>
+    <button id="auto-scroll" data-i18n="autoScroll">Auto Scroll</button>
+    <button id="open-gallery" data-i18n="openGallery">Open Gallery</button>
+    <button id="clear" data-i18n="clear">Clear</button>
   </div>
-  <div id="bookmark-count"></div>
+  <div id="stats">
+    <div class="stat-card">
+      <span class="stat-value" id="video-count">-</span>
+      <span class="stat-label" data-i18n="totalVideos">Total Videos</span>
+    </div>
+  </div>
+  <select id="lang-selector">
+    <option value="en">English</option>
+    <option value="fr">Français</option>
+    <option value="de">Deutsch</option>
+    <option value="es">Español</option>
+  </select>
   <div id="status"></div>
+  <script src="i18n.js"></script>
   <script src="analytics.js"></script>
   <script src="popup.js"></script>
 </body>

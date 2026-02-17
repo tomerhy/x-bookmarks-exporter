@@ -1,0 +1,116 @@
+{
+  "extName": {
+    "message": "X Video URL Exporter"
+  },
+  "extDescription": {
+    "message": "Video-URLs von X (Twitter) extrahieren und exportieren"
+  },
+  "videoGallery": {
+    "message": "Videogalerie"
+  },
+  "autoScroll": {
+    "message": "Auto-Scrollen"
+  },
+  "autoScrollVideos": {
+    "message": "Auto-Scrollen Videos"
+  },
+  "openGallery": {
+    "message": "Galerie oeffnen"
+  },
+  "donate": {
+    "message": "Spenden"
+  },
+  "copyUrls": {
+    "message": "URLs kopieren"
+  },
+  "clear": {
+    "message": "Loeschen"
+  },
+  "exportUrls": {
+    "message": "URLs exportieren"
+  },
+  "importUrls": {
+    "message": "URLs importieren"
+  },
+  "mp4Only": {
+    "message": "Nur MP4"
+  },
+  "startBookmarksScroll": {
+    "message": "Lesezeichen scrollen starten"
+  },
+  "stopBookmarksScroll": {
+    "message": "Lesezeichen scrollen stoppen"
+  },
+  "startVideosScroll": {
+    "message": "Videos scrollen starten"
+  },
+  "stopVideosScroll": {
+    "message": "Videos scrollen stoppen"
+  },
+  "loadedBookmarks": {
+    "message": "Geladene Lesezeichen"
+  },
+  "totalVideos": {
+    "message": "Videos insgesamt"
+  },
+  "openBookmarksFirst": {
+    "message": "Oeffnen Sie zuerst Ihre X-Lesezeichen-Seite."
+  },
+  "unableToConnect": {
+    "message": "Verbindung zur Seite nicht moeglich. Neu laden und erneut versuchen."
+  },
+  "noVideosYet": {
+    "message": "Noch keine Videos erfasst."
+  },
+  "videos": {
+    "message": "Videos"
+  },
+  "urls": {
+    "message": "URLs"
+  },
+  "downloadMp4": {
+    "message": "MP4 herunterladen"
+  },
+  "loadingPlaylist": {
+    "message": "Playlist wird geladen..."
+  },
+  "downloadingSegments": {
+    "message": "Segmente werden heruntergeladen..."
+  },
+  "muxingToMp4": {
+    "message": "Wird zu MP4 konvertiert..."
+  },
+  "downloadComplete": {
+    "message": "Download abgeschlossen."
+  },
+  "downloadFailed": {
+    "message": "Download fehlgeschlagen."
+  },
+  "encryptedHlsNotSupported": {
+    "message": "Verschluesseltes HLS wird nicht unterstuetzt."
+  },
+  "onlyFmp4Supported": {
+    "message": "Nur fMP4-Playlists (EXT-X-MAP) werden unterstuetzt."
+  },
+  "noSegmentsFound": {
+    "message": "Keine Segmente gefunden."
+  },
+  "failedToLoadPlaylist": {
+    "message": "Playlist konnte nicht geladen werden"
+  },
+  "failedToDownloadSegment": {
+    "message": "Segment konnte nicht heruntergeladen werden"
+  },
+  "failedToDownloadMp4": {
+    "message": "MP4 konnte nicht heruntergeladen werden"
+  },
+  "language": {
+    "message": "Sprache"
+  },
+  "loadedItems": {
+    "message": "Geladene Elemente"
+  },
+  "stopScroll": {
+    "message": "Scrollen Stoppen"
+  }
+}

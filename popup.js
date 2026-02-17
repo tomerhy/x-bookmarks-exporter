@@ -1,12 +1,11 @@
 const autoScrollBtn = document.getElementById("auto-scroll");
-const autoScrollVideosBtn = document.getElementById("auto-scroll-videos");
 const openGalleryBtn = document.getElementById("open-gallery");
-const donateBtn = document.getElementById("donate");
-const copyBtn = document.getElementById("copy");
+const donateBtn = document.getElementById("header-donate");
 const clearBtn = document.getElementById("clear");
-const bookmarkCount = document.getElementById("bookmark-count");
+const videoCountEl = document.getElementById("video-count");
 const statusEl = document.getElementById("status");
 const versionEl = document.getElementById("version");
+const langSelector = document.getElementById("lang-selector");
 
 const setStatus = (message) => {
   statusEl.textContent = message || "";
@@ -20,15 +19,17 @@ const withActiveTab = (cb) => {
   });
 };
 
-const updateAutoScrollButtons = (running, mode) => {
-  const isBookmarks = running && mode === "bookmarks";
-  const isVideos = running && mode === "videos";
-  autoScrollBtn.textContent = isBookmarks
-    ? "Stop Bookmarks Scroll"
-    : "Start Bookmarks Scroll";
-  autoScrollVideosBtn.textContent = isVideos
-    ? "Stop Videos Scroll"
-    : "Start Videos Scroll";
+const updateAutoScrollButton = (running) => {
+  if (running) {
+    autoScrollBtn.textContent = I18n.getMessage("stopScroll", "Stop Scroll");
+    autoScrollBtn.classList.add("scrolling-active");
+    autoScrollBtn.style.borderColor = "rgba(255, 107, 107, 0.6)";
+  } else {
+    autoScrollBtn.textContent = I18n.getMessage("autoScroll", "Auto Scroll");
+    autoScrollBtn.classList.remove("scrolling-active");
+    autoScrollBtn.style.background = "linear-gradient(180deg, #1a2332, #131a26)";
+    autoScrollBtn.style.borderColor = "rgba(255, 255, 255, 0.08)";
+  }
 };
 
 const setVersion = () => {
@@ -52,40 +53,10 @@ const ensureContentScript = (tabId, cb) => {
   });
 };
 
-const updateBookmarkCount = () => {
-  let loadedCount = null;
-  let totalUrls = null;
-
-  const render = () => {
-    if (loadedCount === null && totalUrls === null) {
-      bookmarkCount.textContent = "";
-      return;
-    }
-    const loadedText =
-      typeof loadedCount === "number" ? `Loaded bookmarks: ${loadedCount}` : "";
-    const totalText =
-      typeof totalUrls === "number" ? `Total videos: ${totalUrls}` : "";
-    bookmarkCount.textContent = [loadedText, totalText].filter(Boolean).join(" | ");
-  };
-
+const updateVideoCount = () => {
   chrome.storage.local.get({ videoUrls: [] }, (data) => {
-    totalUrls = Array.isArray(data.videoUrls) ? data.videoUrls.length : 0;
-    render();
-  });
-
-  withActiveTab((tab) => {
-    ensureContentScript(tab.id, (ok) => {
-      if (!ok) return;
-      chrome.tabs.sendMessage(
-        tab.id,
-        { type: "GET_BOOKMARK_COUNT" },
-        (res) => {
-          if (chrome.runtime.lastError) return;
-          loadedCount = typeof res?.count === "number" ? res.count : null;
-          render();
-        }
-      );
-    });
+    const count = Array.isArray(data.videoUrls) ? data.videoUrls.length : 0;
+    videoCountEl.textContent = count;
   });
 };
 
@@ -98,33 +69,24 @@ const syncAutoScrollStatus = () => {
         { type: "GET_AUTO_SCROLL_STATUS" },
         (res) => {
           if (chrome.runtime.lastError) return;
-          updateAutoScrollButtons(!!res?.running, res?.mode);
+          updateAutoScrollButton(!!res?.running);
         }
       );
     });
   });
 };
 
-const startOrStopScroll = (mode) => {
-  const isBookmarksMode = mode === "bookmarks";
-  const startMessage = isBookmarksMode
-    ? "AUTO_SCROLL_BOOKMARKS"
-    : "AUTO_SCROLL_VIDEOS";
-
+const startOrStopScroll = () => {
   setStatus("");
   withActiveTab((tab) => {
-    if (
-      !tab.url ||
-      !/x\.com\/i\/bookmarks|twitter\.com\/i\/bookmarks/.test(tab.url)
-    ) {
-      if (isBookmarksMode) {
-        setStatus("Open your X Bookmarks page first.");
-        return;
-      }
-    }
+    // Auto-detect mode based on current page
+    const isBookmarksPage = tab.url && /x\.com\/i\/bookmarks|twitter\.com\/i\/bookmarks/.test(tab.url);
+    const mode = isBookmarksPage ? "bookmarks" : "videos";
+    const startMessage = isBookmarksPage ? "AUTO_SCROLL_BOOKMARKS" : "AUTO_SCROLL_VIDEOS";
+
     ensureContentScript(tab.id, (ok) => {
       if (!ok) {
-        setStatus("Unable to connect to the page. Reload and try again.");
+        setStatus(I18n.getMessage("unableToConnect", "Unable to connect to the page. Reload and try again."));
         return;
       }
       chrome.tabs.sendMessage(
@@ -132,21 +94,21 @@ const startOrStopScroll = (mode) => {
         { type: "GET_AUTO_SCROLL_STATUS" },
         (res) => {
           if (chrome.runtime.lastError) {
-            setStatus("Unable to connect to the page. Reload and try again.");
+            setStatus(I18n.getMessage("unableToConnect", "Unable to connect to the page. Reload and try again."));
             return;
           }
           const running = !!res?.running;
-          const runningMode = res?.mode;
-          if (running && runningMode === mode) {
+          
+          if (running) {
+            // Stop scrolling
             chrome.tabs.sendMessage(tab.id, { type: "STOP_AUTO_SCROLL" });
-            updateAutoScrollButtons(false);
+            updateAutoScrollButton(false);
             return;
           }
-          if (running && runningMode !== mode) {
-            chrome.tabs.sendMessage(tab.id, { type: "STOP_AUTO_SCROLL" });
-          }
+          
+          // Start scrolling
           chrome.tabs.sendMessage(tab.id, { type: startMessage });
-          updateAutoScrollButtons(true, mode);
+          updateAutoScrollButton(true);
         }
       );
     });
@@ -154,12 +116,8 @@ const startOrStopScroll = (mode) => {
 };
 
 autoScrollBtn.onclick = () => {
-  if (window.Analytics) Analytics.trackButtonClick("auto_scroll_bookmarks", "popup");
-  startOrStopScroll("bookmarks");
-};
-autoScrollVideosBtn.onclick = () => {
-  if (window.Analytics) Analytics.trackButtonClick("auto_scroll_videos", "popup");
-  startOrStopScroll("videos");
+  if (window.Analytics) Analytics.trackButtonClick("auto_scroll", "popup");
+  startOrStopScroll();
 };
 
 openGalleryBtn.onclick = () => {
@@ -172,27 +130,47 @@ donateBtn.onclick = () => {
   chrome.tabs.create({ url: "https://www.patreon.com/join/THYProduction" });
 };
 
-copyBtn.onclick = () => {
-  if (window.Analytics) Analytics.trackButtonClick("copy_urls", "popup");
-  chrome.runtime.sendMessage({ type: "GET_URLS" }, res => {
-    const urls = res?.urls || [];
-    const text = urls.join("\n");
-    navigator.clipboard.writeText(text).catch(() => {});
-  });
-};
-
 clearBtn.onclick = () => {
   if (window.Analytics) Analytics.trackButtonClick("clear_urls", "popup");
   chrome.runtime.sendMessage({ type: "CLEAR_URLS" });
-  bookmarkCount.textContent = "Loaded bookmarks: 0 | Total videos: 0";
+  videoCountEl.textContent = "0";
 };
 
-syncAutoScrollStatus();
-updateBookmarkCount();
-setInterval(updateBookmarkCount, 1500);
-setVersion();
+// Language selector
+langSelector.onchange = async () => {
+  const newLang = langSelector.value;
+  const success = await I18n.setLanguage(newLang);
+  if (success) {
+    translatePage();
+    updateVideoCount();
+  }
+};
 
-// Analytics: Track popup page view
-if (window.Analytics) {
-  Analytics.trackPageView("popup");
-}
+// Translate all elements with data-i18n attribute
+const translatePage = () => {
+  document.querySelectorAll("[data-i18n]").forEach((el) => {
+    const key = el.getAttribute("data-i18n");
+    el.textContent = I18n.getMessage(key, el.textContent);
+  });
+  // Update button state after translation
+  syncAutoScrollStatus();
+};
+
+// Initialize i18n and UI
+const initializePopup = async () => {
+  await I18n.init();
+  const currentLang = I18n.getCurrentLanguage();
+  langSelector.value = currentLang;
+  translatePage();
+  syncAutoScrollStatus();
+  updateVideoCount();
+  setInterval(updateVideoCount, 1500);
+  setVersion();
+  
+  // Analytics: Track popup page view
+  if (window.Analytics) {
+    Analytics.trackPageView("popup");
+  }
+};
+
+initializePopup();

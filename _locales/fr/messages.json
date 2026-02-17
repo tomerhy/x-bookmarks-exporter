@@ -1,0 +1,116 @@
+{
+  "extName": {
+    "message": "Exportateur d'URL video X"
+  },
+  "extDescription": {
+    "message": "Extraire et exporter les URL vidéo de X (Twitter)"
+  },
+  "videoGallery": {
+    "message": "Galerie Video"
+  },
+  "autoScroll": {
+    "message": "Defilement Auto"
+  },
+  "autoScrollVideos": {
+    "message": "Defilement Auto Videos"
+  },
+  "openGallery": {
+    "message": "Ouvrir la Galerie"
+  },
+  "donate": {
+    "message": "Faire un Don"
+  },
+  "copyUrls": {
+    "message": "Copier les URL"
+  },
+  "clear": {
+    "message": "Effacer"
+  },
+  "exportUrls": {
+    "message": "Exporter les URL"
+  },
+  "importUrls": {
+    "message": "Importer les URL"
+  },
+  "mp4Only": {
+    "message": "MP4 seulement"
+  },
+  "startBookmarksScroll": {
+    "message": "Demarrer Defilement Favoris"
+  },
+  "stopBookmarksScroll": {
+    "message": "Arreter Defilement Favoris"
+  },
+  "startVideosScroll": {
+    "message": "Demarrer Defilement Videos"
+  },
+  "stopVideosScroll": {
+    "message": "Arreter Defilement Videos"
+  },
+  "loadedBookmarks": {
+    "message": "Favoris charges"
+  },
+  "totalVideos": {
+    "message": "Total videos"
+  },
+  "openBookmarksFirst": {
+    "message": "Ouvrez d'abord votre page de Favoris X."
+  },
+  "unableToConnect": {
+    "message": "Impossible de se connecter a la page. Rechargez et reessayez."
+  },
+  "noVideosYet": {
+    "message": "Aucune video capturee pour le moment."
+  },
+  "videos": {
+    "message": "Videos"
+  },
+  "urls": {
+    "message": "URL"
+  },
+  "downloadMp4": {
+    "message": "Telecharger MP4"
+  },
+  "loadingPlaylist": {
+    "message": "Chargement de la playlist..."
+  },
+  "downloadingSegments": {
+    "message": "Telechargement des segments..."
+  },
+  "muxingToMp4": {
+    "message": "Conversion en MP4..."
+  },
+  "downloadComplete": {
+    "message": "Telechargement termine."
+  },
+  "downloadFailed": {
+    "message": "Echec du telechargement."
+  },
+  "encryptedHlsNotSupported": {
+    "message": "HLS crypte non pris en charge."
+  },
+  "onlyFmp4Supported": {
+    "message": "Seules les playlists fMP4 (EXT-X-MAP) sont prises en charge."
+  },
+  "noSegmentsFound": {
+    "message": "Aucun segment trouve."
+  },
+  "failedToLoadPlaylist": {
+    "message": "Échec du chargement de la playlist"
+  },
+  "failedToDownloadSegment": {
+    "message": "Echec du telechargement du segment"
+  },
+  "failedToDownloadMp4": {
+    "message": "Echec du telechargement MP4"
+  },
+  "language": {
+    "message": "Langue"
+  },
+  "loadedItems": {
+    "message": "Elements Charges"
+  },
+  "stopScroll": {
+    "message": "Arreter Defilement"
+  }
+}

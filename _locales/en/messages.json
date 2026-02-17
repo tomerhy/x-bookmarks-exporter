@@ -1,0 +1,116 @@
+{
+  "extName": {
+    "message": "X Video URL Exporter"
+  },
+  "extDescription": {
+    "message": "Extract and export video URLs from X (Twitter)"
+  },
+  "videoGallery": {
+    "message": "Video Gallery"
+  },
+  "autoScroll": {
+    "message": "Auto Scroll"
+  },
+  "autoScrollVideos": {
+    "message": "Auto Scroll Videos"
+  },
+  "openGallery": {
+    "message": "Open Gallery"
+  },
+  "donate": {
+    "message": "Donate"
+  },
+  "copyUrls": {
+    "message": "Copy URLs"
+  },
+  "clear": {
+    "message": "Clear"
+  },
+  "exportUrls": {
+    "message": "Export URLs"
+  },
+  "importUrls": {
+    "message": "Import URLs"
+  },
+  "mp4Only": {
+    "message": "MP4 only"
+  },
+  "startBookmarksScroll": {
+    "message": "Start Bookmarks Scroll"
+  },
+  "stopBookmarksScroll": {
+    "message": "Stop Bookmarks Scroll"
+  },
+  "startVideosScroll": {
+    "message": "Start Videos Scroll"
+  },
+  "stopVideosScroll": {
+    "message": "Stop Videos Scroll"
+  },
+  "loadedBookmarks": {
+    "message": "Loaded bookmarks"
+  },
+  "totalVideos": {
+    "message": "Total videos"
+  },
+  "openBookmarksFirst": {
+    "message": "Open your X Bookmarks page first."
+  },
+  "unableToConnect": {
+    "message": "Unable to connect to the page. Reload and try again."
+  },
+  "noVideosYet": {
+    "message": "No videos captured yet."
+  },
+  "videos": {
+    "message": "Videos"
+  },
+  "urls": {
+    "message": "URLs"
+  },
+  "downloadMp4": {
+    "message": "Download MP4"
+  },
+  "loadingPlaylist": {
+    "message": "Loading playlist..."
+  },
+  "downloadingSegments": {
+    "message": "Downloading segments..."
+  },
+  "muxingToMp4": {
+    "message": "Muxing to MP4..."
+  },
+  "downloadComplete": {
+    "message": "Download complete."
+  },
+  "downloadFailed": {
+    "message": "Download failed."
+  },
+  "encryptedHlsNotSupported": {
+    "message": "Encrypted HLS not supported."
+  },
+  "onlyFmp4Supported": {
+    "message": "Only fMP4 playlists (EXT-X-MAP) are supported."
+  },
+  "noSegmentsFound": {
+    "message": "No segments found."
+  },
+  "failedToLoadPlaylist": {
+    "message": "Failed to load playlist"
+  },
+  "failedToDownloadSegment": {
+    "message": "Failed to download segment"
+  },
+  "failedToDownloadMp4": {
+    "message": "Failed to download MP4"
+  },
+  "language": {
+    "message": "Language"
+  },
+  "loadedItems": {
+    "message": "Loaded Items"
+  },
+  "stopScroll": {
+    "message": "Stop Scroll"
+  }
+}
