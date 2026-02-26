@@ -118,6 +118,97 @@
       border-color: rgba(124, 156, 255, 0.6);
     }
     
+    /* Coffee Support Banner */
+    #coffee-banner {
+      margin-top: 12px;
+      padding: 10px 12px;
+      background: linear-gradient(135deg, #FFDD57, #FFA500);
+      border: 1px solid rgba(255, 165, 0, 0.3);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      animation: slideDown 0.3s ease-out;
+    }
+    
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    #coffee-banner-text {
+      flex: 1;
+      font-size: 11px;
+      color: #1a1406;
+      line-height: 1.4;
+    }
+    
+    #coffee-banner-actions {
+      display: flex;
+      gap: 6px;
+    }
+    
+    #coffee-banner-support {
+      padding: 4px 10px;
+      background: #1a1406;
+      color: #FFDD57;
+      border: none;
+      border-radius: 5px;
+      font-size: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.1s ease;
+    }
+    
+    #coffee-banner-support:hover {
+      transform: translateY(-1px);
+    }
+    
+    #coffee-banner-dismiss {
+      padding: 4px 8px;
+      background: rgba(0, 0, 0, 0.1);
+      color: #1a1406;
+      border: none;
+      border-radius: 5px;
+      font-size: 10px;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+    
+    #coffee-banner-dismiss:hover {
+      background: rgba(0, 0, 0, 0.2);
+    }
+    
+    /* Coffee Footer Link */
+    #coffee-footer {
+      margin-top: 10px;
+      padding-top: 8px;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      text-align: center;
+    }
+    
+    #coffee-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 10px;
+      color: #7c9cff;
+      text-decoration: none;
+      opacity: 0.6;
+      transition: opacity 0.2s ease;
+    }
+    
+    #coffee-link:hover {
+      opacity: 1;
+    }
+    
     /* Auto Scroll Animation */
     @keyframes pulse-glow {
       0%, 100% {
@@ -255,6 +346,25 @@
     <option value="es">Español</option>
   </select>
   <div id="status"></div>
+  
+  <!-- One-time Coffee Banner (shown after 15 uses) -->
+  <div id="coffee-banner" style="display: none;">
+    <div id="coffee-banner-text">
+      ☕ Enjoying this extension? Consider buying me a coffee!
+    </div>
+    <div id="coffee-banner-actions">
+      <button id="coffee-banner-support">Support me</button>
+      <button id="coffee-banner-dismiss">✕</button>
+    </div>
+  </div>
+  
+  <!-- Passive Coffee Footer Link -->
+  <div id="coffee-footer">
+    <a id="coffee-link" href="#" target="_blank">
+      ☕ Buy Me a Coffee
+    </a>
+  </div>
+  
   <script src="i18n.js"></script>
   <script src="analytics.js"></script>
   <script src="popup.js"></script>

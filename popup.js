@@ -6,6 +6,13 @@ const videoCountEl = document.getElementById("video-count");
 const statusEl = document.getElementById("status");
 const versionEl = document.getElementById("version");
 const langSelector = document.getElementById("lang-selector");
+const coffeeBanner = document.getElementById("coffee-banner");
+const coffeeBannerSupport = document.getElementById("coffee-banner-support");
+const coffeeBannerDismiss = document.getElementById("coffee-banner-dismiss");
+const coffeeLink = document.getElementById("coffee-link");
+
+const COFFEE_URL = "https://buymeacoffee.com/thyproduction";
+const USAGE_THRESHOLD = 15;
 
 const setStatus = (message) => {
   statusEl.textContent = message || "";
@@ -35,6 +42,36 @@ const updateAutoScrollButton = (running) => {
 const setVersion = () => {
   const version = chrome.runtime.getManifest().version;
   versionEl.textContent = `v${version}`;
+};
+
+// Coffee Support - Track usage and show banner
+const trackUsageAndShowCoffeeBanner = () => {
+  chrome.storage.local.get(
+    { usageCount: 0, coffeeBannerDismissed: false },
+    (data) => {
+      const { usageCount, coffeeBannerDismissed } = data;
+      
+      // Increment usage count
+      const newCount = usageCount + 1;
+      chrome.storage.local.set({ usageCount: newCount });
+      
+      // Show banner if threshold reached and not dismissed
+      if (newCount >= USAGE_THRESHOLD && !coffeeBannerDismissed) {
+        coffeeBanner.style.display = "flex";
+      }
+    }
+  );
+};
+
+// Open coffee link in new tab
+const openCoffeeLink = () => {
+  chrome.tabs.create({ url: COFFEE_URL });
+};
+
+// Dismiss coffee banner permanently
+const dismissCoffeeBanner = () => {
+  coffeeBanner.style.display = "none";
+  chrome.storage.local.set({ coffeeBannerDismissed: true });
 };
 
 const ensureContentScript = (tabId, cb) => {
@@ -117,6 +154,7 @@ const startOrStopScroll = () => {
 
 autoScrollBtn.onclick = () => {
   if (window.Analytics) Analytics.trackButtonClick("auto_scroll", "popup");
+  trackUsageAndShowCoffeeBanner();
   startOrStopScroll();
 };
 
@@ -134,6 +172,24 @@ clearBtn.onclick = () => {
   if (window.Analytics) Analytics.trackButtonClick("clear_urls", "popup");
   chrome.runtime.sendMessage({ type: "CLEAR_URLS" });
   videoCountEl.textContent = "0";
+};
+
+// Coffee Support Event Listeners
+coffeeLink.onclick = (e) => {
+  e.preventDefault();
+  if (window.Analytics) Analytics.trackButtonClick("coffee_footer", "popup");
+  openCoffeeLink();
+};
+
+coffeeBannerSupport.onclick = () => {
+  if (window.Analytics) Analytics.trackButtonClick("coffee_banner_support", "popup");
+  dismissCoffeeBanner();
+  openCoffeeLink();
+};
+
+coffeeBannerDismiss.onclick = () => {
+  if (window.Analytics) Analytics.trackButtonClick("coffee_banner_dismiss", "popup");
+  dismissCoffeeBanner();
 };
 
 // Language selector
