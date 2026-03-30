@@ -438,110 +438,8 @@
       color: #00d4ff;
     }
 
-    /* ── Floating bubble ── */
-    .precog-bubble {
-      position: absolute;
-      left: 0;
-      top: 0;
-      border-radius: 50%;
-      cursor: pointer;
-      overflow: hidden;
-      z-index: 10;
-      background: #020c1a;
-      /* static depth shadow — not animated, no repaint */
-      box-shadow:
-        inset  0   0   18px rgba(0,100,255,0.22),
-        inset -5px -5px 15px rgba(0,40,140,0.38);
-      transition:
-        width         0.44s cubic-bezier(0.34,1.4,0.64,1),
-        height        0.44s cubic-bezier(0.34,1.4,0.64,1),
-        border-radius 0.38s ease;
-      /* glow via filter — GPU-composited, zero repaints */
-      animation: bubble-breathe 3s ease-in-out infinite alternate;
-      will-change: transform, filter;
-    }
-
-    @keyframes bubble-breathe {
-      from { filter: drop-shadow(0 0 5px  rgba(0,212,255,0.65)) drop-shadow(0 0 16px rgba(0,212,255,0.28)); }
-      to   { filter: drop-shadow(0 0 12px rgba(0,212,255,1.00)) drop-shadow(0 0 32px rgba(0,212,255,0.55)); }
-    }
-
-    /* glass sphere overlay — sits above video, disappears on expand */
-    .precog-bubble::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      border-radius: 50%;
-      background:
-        /* specular highlight — tight bright dot top-left */
-        radial-gradient(circle at 30% 26%,
-          rgba(255,255,255,0.90) 0%,
-          rgba(220,245,255,0.55) 9%,
-          transparent           26%
-        ),
-        /* secondary sheen bottom-right — gives depth */
-        radial-gradient(circle at 72% 74%,
-          rgba(0,100,200,0.22) 0%,
-          transparent          40%
-        ),
-        /* limb darkening — edges curve away from viewer */
-        radial-gradient(circle,
-          transparent           42%,
-          rgba(0,8,30,0.30)     68%,
-          rgba(0,4,18,0.82)    100%
-        );
-      pointer-events: none;
-      transition: opacity 0.28s ease;
-      z-index: 1;
-    }
-
-    .precog-bubble video {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      opacity: 0.92;
-      border-radius: 50%;
-      /* scale up slightly so the masked edges still fill the sphere */
-      transform: scale(1.08);
-      /* radial mask fades image toward edges — simulates curving away */
-      -webkit-mask-image: radial-gradient(circle,
-        white 0%,
-        white 52%,
-        rgba(255,255,255,0.80) 68%,
-        rgba(255,255,255,0.25) 84%,
-        transparent            100%
-      );
-      mask-image: radial-gradient(circle,
-        white 0%,
-        white 52%,
-        rgba(255,255,255,0.80) 68%,
-        rgba(255,255,255,0.25) 84%,
-        transparent            100%
-      );
-      transition: opacity 0.28s ease, border-radius 0.38s ease,
-                  transform 0.38s ease, mask-image 0.28s ease;
-    }
-
-    .precog-bubble.expanded {
-      width: 300px !important;
-      height: 220px !important;
-      border-radius: 14px;
-      filter: drop-shadow(0 0 28px rgba(0,212,255,0.55)) drop-shadow(0 0 60px rgba(0,0,0,0.88)) !important;
-      z-index: 200;
-      animation: none;
-    }
-
-    .precog-bubble.expanded::after { opacity: 0; }
-
-    .precog-bubble.expanded video {
-      opacity: 1;
-      border-radius: 0;
-      transform: scale(1);
-      -webkit-mask-image: none;
-      mask-image: none;
-    }
+    /* ── Bubble canvas ── */
+    #bubble-field canvas { display: block; }
 
     /* ── Bubble modal ── */
     #bubble-modal {
@@ -615,17 +513,6 @@
     #bubble-modal-close:hover {
       background: rgba(200,40,40,0.85);
       transform: scale(1.1);
-    }
-
-    .precog-bubble.popping {
-      animation: bubble-pop 0.12s ease-in forwards !important;
-      pointer-events: none;
-    }
-
-    @keyframes bubble-pop {
-      0%   { opacity: 1; filter: brightness(1); }
-      60%  { opacity: 0.7; filter: brightness(2.8) saturate(0); }
-      100% { opacity: 0; filter: brightness(1); }
     }
 
     .bubble-pop-ring {

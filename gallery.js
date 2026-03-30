@@ -53,10 +53,10 @@ const closeBubbleModal = () => {
   bubbleModalVideo.pause();
   bubbleModalVideo.src = "";
   bubbleModal.classList.remove("open");
-  if (_modalBubble) {
-    _modalBubble.pop();
-    _modalBubble = null;
-  }
+  // wait for modal close animation to finish, then pop the bubble
+  const target = _modalBubble;
+  _modalBubble = null;
+  if (target) setTimeout(() => target.pop(), 380);
 };
 
 bubbleModalClose.addEventListener("click", closeBubbleModal);
@@ -102,160 +102,308 @@ btnPrecog.onclick = () => {
 };
 // ─────────────────────────────────────────────────────────────────────────────
 
-// ─── Floating Bubble System ──────────────────────────────────────────────────
+// ─── 2D Canvas Bubble Renderer ───────────────────────────────────────────────
 let _bubbles = [];
 let _bubbleRafId = null;
+let _bubbleCanvas = null;
+let _bubbleCtx = null;
+
+// Draw one sphere onto the 2D canvas with proper lighting layers:
+//   1. video texture (or dark placeholder)
+//   2. diffuse gradient — light upper-left, shadow lower-right (key 3D cue)
+//   3. limb darkening  — edges curve away from viewer
+//   4. specular        — sharp bright dot upper-left
+//   5. hover glow overlay + rim stroke
+function _drawBubble(ctx, b) {
+  if (b.alpha <= 0.01) return;
+  const { x, y, currentR: r, video, hovered, glowT, alpha } = b;
+  const sc = b._spawnScale;
+
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  // spawn scale-in: grow from 0 around the bubble's center
+  if (sc < 1) {
+    ctx.translate(x, y);
+    ctx.scale(sc, sc);
+    ctx.translate(-x, -y);
+  }
+
+  // clip to circle
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, Math.PI * 2);
+  ctx.clip();
+
+  // 1. video texture — scrolled along the bubble's tilt axis to simulate
+  //    rotation in a random direction (not all horizontal)
+  //    Lighting stays fixed; only the surface texture moves.
+  const dW = r * 2.12, dH = r * 2.12;
+  const t   = (b.rotationY % (Math.PI * 2)) / (Math.PI * 2);
+  const sX  = Math.cos(b.tiltAngle) * t * dW;
+  const sY  = Math.sin(b.tiltAngle) * t * dH;
+  const tx0 = x - r * 1.06 + sX;
+  const ty0 = y - r * 1.06 + sY;
+  if (video.readyState >= 2) {
+    // 3×3 grid so wrap-around works in any scroll direction
+    for (let row = -1; row <= 1; row++) {
+      for (let col = -1; col <= 1; col++) {
+        ctx.drawImage(video, tx0 + col * dW, ty0 + row * dH, dW, dH);
+      }
+    }
+  } else {
+    ctx.fillStyle = "#00091c";
+    ctx.fillRect(x - r, y - r, r * 2, r * 2);
+  }
+
+  // 2. diffuse gradient — simulates directional light from upper-left
+  //    lit side (upper-left) stays clear; shadow side (lower-right) darkens
+  const gDiff = ctx.createRadialGradient(
+    x - r * 0.25, y - r * 0.30, r * 0.05,
+    x + r * 0.35, y + r * 0.40, r * 1.4
+  );
+  gDiff.addColorStop(0,    "rgba(255,255,255,0.0)");  // bright side — no tint
+  gDiff.addColorStop(0.40, "rgba(0,4,18,0.08)");
+  gDiff.addColorStop(0.70, "rgba(0,3,14,0.40)");
+  gDiff.addColorStop(1.0,  "rgba(0,1,8,0.72)");       // dark shadow side
+  ctx.fillStyle = gDiff;
+  ctx.fillRect(x - r, y - r, r * 2, r * 2);
+
+  // 3. limb darkening — radial falloff from center; edges nearly black
+  const gLimb = ctx.createRadialGradient(x, y, r * 0.42, x, y, r);
+  gLimb.addColorStop(0,    "rgba(0,0,0,0)");
+  gLimb.addColorStop(0.60, "rgba(0,0,0,0)");
+  gLimb.addColorStop(0.78, "rgba(0,2,12,0.42)");
+  gLimb.addColorStop(0.90, "rgba(0,1,8,0.74)");
+  gLimb.addColorStop(1.0,  "rgba(0,0,5,0.92)");
+  ctx.fillStyle = gLimb;
+  ctx.fillRect(x - r, y - r, r * 2, r * 2);
+
+  // 4. specular highlight — small, sharp, very bright dot upper-left
+  const sx = x - r * 0.33, sy = y - r * 0.36;
+  const gSpec = ctx.createRadialGradient(sx, sy, 0, sx, sy, r * 0.36);
+  gSpec.addColorStop(0,    "rgba(255,255,255,0.96)");
+  gSpec.addColorStop(0.15, "rgba(235,248,255,0.75)");
+  gSpec.addColorStop(0.42, "rgba(180,222,255,0.28)");
+  gSpec.addColorStop(1.0,  "rgba(0,0,0,0)");
+  ctx.fillStyle = gSpec;
+  ctx.fillRect(x - r, y - r, r * 2, r * 2);
+
+  // 5. hover glow tint
+  if (glowT > 0.01) {
+    const gGlow = ctx.createRadialGradient(x, y, 0, x, y, r);
+    gGlow.addColorStop(0,   `rgba(0,100,200,0)`);
+    gGlow.addColorStop(0.65,`rgba(0,90,190,${0.10 * glowT})`);
+    gGlow.addColorStop(1.0, `rgba(0,212,255,${0.28 * glowT})`);
+    ctx.fillStyle = gGlow;
+    ctx.fillRect(x - r, y - r, r * 2, r * 2);
+  }
+
+  ctx.restore(); // end circular clip
+
+  // 6. rim stroke — drawn outside clip so it's clean
+  ctx.save();
+  ctx.globalAlpha = alpha * (hovered ? 0.85 : 0.25);
+  ctx.beginPath();
+  ctx.arc(x, y, r - 0.8, 0, Math.PI * 2);
+  ctx.strokeStyle = hovered ? "rgba(0,212,255,1)" : "rgba(0,150,220,1)";
+  ctx.lineWidth = hovered ? 1.8 : 1.2;
+  ctx.stroke();
+  ctx.restore();
+}
+
+function _initBubbleCanvas() {
+  _bubbleCanvas = document.createElement("canvas");
+  _bubbleCanvas.style.cssText = "position:absolute;inset:0;width:100%;height:100%;display:block;cursor:default;";
+  bubbleField.appendChild(_bubbleCanvas);
+  _bubbleCtx = _bubbleCanvas.getContext("2d");
+  _resizeBubbleCanvas();
+  _bubbleCanvas.addEventListener("mousemove",  _onBubbleMouseMove);
+  _bubbleCanvas.addEventListener("mouseleave", _onBubbleMouseLeave);
+  _bubbleCanvas.addEventListener("click",      _onBubbleClick);
+}
+
+function _resizeBubbleCanvas() {
+  if (!_bubbleCanvas) return;
+  const W = bubbleField.clientWidth  || window.innerWidth;
+  const H = bubbleField.clientHeight || (window.innerHeight - 60);
+  _bubbleCanvas.width  = W;
+  _bubbleCanvas.height = H;
+}
+
+function _teardownBubbleCanvas() {
+  if (_bubbleCanvas) {
+    _bubbleCanvas.removeEventListener("mousemove",  _onBubbleMouseMove);
+    _bubbleCanvas.removeEventListener("mouseleave", _onBubbleMouseLeave);
+    _bubbleCanvas.removeEventListener("click",      _onBubbleClick);
+    _bubbleCanvas.remove();
+    _bubbleCanvas = null;
+    _bubbleCtx = null;
+  }
+}
+
+let _hoverLeaveTimer = null;
+
+function _hitBubble(mx, my) {
+  for (let i = _bubbles.length - 1; i >= 0; i--) {
+    const b = _bubbles[i];
+    if (b._popping || !b._ready) continue;
+    const dx = mx - b.x, dy = my - b.y;
+    if (Math.sqrt(dx * dx + dy * dy) <= b.currentR + 5) return b;
+  }
+  return null;
+}
+function _setHovered(hit) {
+  for (const b of _bubbles) b.setHovered(b === hit);
+}
+function _onBubbleMouseMove(e) {
+  const rect = _bubbleCanvas.getBoundingClientRect();
+  const hit  = _hitBubble(e.clientX - rect.left, e.clientY - rect.top);
+  if (_hoverLeaveTimer) { clearTimeout(_hoverLeaveTimer); _hoverLeaveTimer = null; }
+  if (hit) _setHovered(hit);
+  else _hoverLeaveTimer = setTimeout(() => _setHovered(null), 100);
+  _bubbleCanvas.style.cursor = hit ? "pointer" : "default";
+}
+function _onBubbleMouseLeave() {
+  if (_hoverLeaveTimer) clearTimeout(_hoverLeaveTimer);
+  _hoverLeaveTimer = setTimeout(() => _setHovered(null), 150);
+}
+function _onBubbleClick(e) {
+  const rect = _bubbleCanvas.getBoundingClientRect();
+  const hit  = _hitBubble(e.clientX - rect.left, e.clientY - rect.top);
+  if (!hit) return;
+  _videosPlayedCount += 1;
+  if (window.Analytics) Analytics.sendEvent("video_play", {
+    video_index: hit.index,
+    format: hit.url.includes(".m3u8") ? "hls" : "mp4",
+    video_path: normalizeUrl(hit.url),
+    source: "bubble_expand",
+  });
+  openBubbleModal(hit);
+}
 
 class PrecogBubble {
   constructor(url, index, W, H) {
-    this.url = url;
+    this.url   = url;
     this.index = index;
-    this.size = 44 + Math.random() * 34;          // 44–78 px
-    this.x = this.size + Math.random() * (W - this.size * 2);
-    this.y = this.size + Math.random() * (H - this.size * 2);
-    const speed = 0.35 + Math.random() * 0.55;
-    const angle = Math.random() * Math.PI * 2;
-    this.vx = Math.cos(angle) * speed;
-    this.vy = Math.sin(angle) * speed;
-    this.phase = Math.random() * Math.PI * 2;     // wobble phase offset
-    this.freq  = 0.008 + Math.random() * 0.006;   // wobble frequency
-    this.amp   = 0.25 + Math.random() * 0.3;      // wobble amplitude
+    const r    = 32 + Math.random() * 24;   // 32–56 px radius → 64–112 px diameter
+    this._r    = r;
+    this.currentR = r;
+    this.x     = r + Math.random() * (W - r * 2);
+    this.y     = r + Math.random() * (H - r * 2);
+    const spd  = 0.12 + Math.random() * 0.18;
+    const ang  = Math.random() * Math.PI * 2;
+    this.vx    = Math.cos(ang) * spd;
+    this.vy    = Math.sin(ang) * spd;
+    this.phase = Math.random() * Math.PI * 2;
+    this.freq  = 0.004 + Math.random() * 0.003;
+    this.amp   = 0.10  + Math.random() * 0.12;
     this.tick  = 0;
-    this.hovered = false;
-    this.el = this._build();
-    bubbleField.appendChild(this.el);
+    this.hovered   = false;
+    this._popping  = false;
+    this.glowT     = 0;
+    this.alpha      = 0;     // hidden until first frame is decoded
+    this._spawnScale = 0;    // grows 0→1 on reveal
+    this._ready     = false;
+    this.rotationY  = Math.random() * Math.PI * 2;
+    this.rotSpeedY  = (0.003 + Math.random() * 0.004) * (Math.random() < 0.5 ? 1 : -1);
+    // random tilt axis: 0 = pure horizontal scroll, π/2 = pure vertical, etc.
+    this.tiltAngle  = Math.random() * Math.PI;
+
+    const v = document.createElement("video");
+    v.src = url; v.muted = true; v.loop = true; v.playsInline = true; v.preload = "metadata";
+    // seek to first frame on metadata load, then wait for seeked to confirm frame is ready
+    v.addEventListener("loadedmetadata", () => { v.currentTime = 0.01; }, { once: true });
+    v.addEventListener("seeked", () => { this._ready = true; }, { once: true });
+    this.video = v;
   }
 
-  _build() {
-    const el = document.createElement("div");
-    el.className = "precog-bubble";
-    el.style.width  = `${this.size}px`;
-    el.style.height = `${this.size}px`;
-    el.style.transform = `translate(${this.x}px, ${this.y}px)`;
-    // stagger the breathing animation so bubbles aren't in sync
-    el.style.animationDelay = `${-Math.random() * 3}s`;
-
-    const video = document.createElement("video");
-    video.src = this.url;
-    video.muted = true;
-    video.loop = true;
-    video.playsInline = true;
-    video.preload = "metadata";
-    // Seek to first frame so the sphere shows a thumbnail
-    video.addEventListener("loadedmetadata", () => {
-      video.currentTime = 0.01;
-    }, { once: true });
-    el.appendChild(video);
-
-    let _leaveTimer = null;
-
-    el.addEventListener("mouseenter", () => {
-      if (_leaveTimer) { clearTimeout(_leaveTimer); _leaveTimer = null; }
-      this.hovered = true;
-      el.classList.add("expanded");
-      video.play().catch(() => {});
-    });
-
-    el.addEventListener("mouseleave", () => {
-      _leaveTimer = setTimeout(() => {
-        this.hovered = false;
-        el.classList.remove("expanded");
-        video.pause();
-        video.currentTime = 0;
-      }, 120);
-    });
-
-    el.addEventListener("click", () => {
-      _videosPlayedCount += 1;
-      if (window.Analytics) Analytics.sendEvent("video_play", {
-        video_index: this.index,
-        format: this.url.includes(".m3u8") ? "hls" : "mp4",
-        video_path: normalizeUrl(this.url),
-        source: "bubble_expand",
-      });
-      openBubbleModal(this);
-    });
-
-    return el;
+  setHovered(h) {
+    if (this.hovered === h || this._popping) return;
+    this.hovered = h;
+    if (h) this.video.play().catch(() => {});
+    else   { this.video.pause(); this.video.currentTime = 0; }
   }
 
   update(W, H) {
+    if (this._popping) {
+      this.alpha -= 0.07;
+      if (this.alpha <= 0) {
+        const i = _bubbles.indexOf(this);
+        if (i !== -1) _bubbles.splice(i, 1);
+        this.video.pause(); this.video.src = "";
+      }
+      return;
+    }
+    // animate spawn reveal once first frame is decoded
+    if (this._ready && this._spawnScale < 1) {
+      this._spawnScale = Math.min(1, this._spawnScale + 0.055); // ~18 frames ≈ 0.3s
+      this.alpha       = Math.min(1, this.alpha       + 0.055);
+    }
+    if (!this._ready) return; // stay invisible while loading
+
+    const tR = this.hovered ? this._r * 1.45 : this._r;
+    this.currentR += (tR - this.currentR) * 0.10;
+    this.glowT    += ((this.hovered ? 1 : 0) - this.glowT) * 0.10;
     if (this.hovered) return;
+
     this.tick++;
-    // gentle sine-wave wobble layered on top of linear velocity
+    this.rotationY += this.rotSpeedY;
     const wx = Math.sin(this.tick * this.freq + this.phase) * this.amp;
     const wy = Math.cos(this.tick * this.freq * 0.7 + this.phase) * this.amp;
     this.x += this.vx + wx;
     this.y += this.vy + wy;
-    // soft bounce — flip velocity when hitting walls
-    const m = this.size * 0.5;
-    if (this.x < m)     { this.vx =  Math.abs(this.vx); }
-    if (this.x > W - m) { this.vx = -Math.abs(this.vx); }
-    if (this.y < m)     { this.vy =  Math.abs(this.vy); }
-    if (this.y > H - m) { this.vy = -Math.abs(this.vy); }
-    this.x = Math.max(m, Math.min(W - m, this.x));
-    this.y = Math.max(m, Math.min(H - m, this.y));
-    this.el.style.transform = `translate(${this.x}px, ${this.y}px)`;
+
+    const r = this._r;
+    if (this.x < r)     this.vx =  Math.abs(this.vx);
+    if (this.x > W - r) this.vx = -Math.abs(this.vx);
+    if (this.y < r)     this.vy =  Math.abs(this.vy);
+    if (this.y > H - r) this.vy = -Math.abs(this.vy);
+    this.x = Math.max(r, Math.min(W - r, this.x));
+    this.y = Math.max(r, Math.min(H - r, this.y));
   }
 
   pop() {
-    this.hovered = false;
-    this.el.classList.remove("expanded");
-    this.el.classList.add("popping");
-    const idx = _bubbles.indexOf(this);
-    if (idx !== -1) _bubbles.splice(idx, 1);
-
-    const cx = this.x + this.size / 2;
-    const cy = this.y + this.size / 2;
+    if (this._popping) return;
+    this._popping = true;
+    this.hovered  = false;
+    this.video.pause();
 
     const ring = document.createElement("div");
     ring.className = "bubble-pop-ring";
-    ring.style.left   = `${cx}px`;
-    ring.style.top    = `${cy}px`;
-    ring.style.width  = `${this.size}px`;
-    ring.style.height = `${this.size}px`;
+    ring.style.cssText = `left:${this.x}px;top:${this.y}px;width:${this.currentR * 2}px;height:${this.currentR * 2}px`;
     bubbleField.appendChild(ring);
 
-    const NUM_DROPS = 6;
-    for (let i = 0; i < NUM_DROPS; i++) {
-      const angle = (i / NUM_DROPS) * Math.PI * 2 + Math.random() * 0.5;
-      const dist  = this.size * 0.6 + Math.random() * this.size * 0.4;
-      const drop  = document.createElement("div");
+    for (let i = 0; i < 6; i++) {
+      const a = (i / 6) * Math.PI * 2 + Math.random() * 0.5;
+      const d = this.currentR * 1.2 + Math.random() * this.currentR * 0.8;
+      const drop = document.createElement("div");
       drop.className = "bubble-pop-drop";
-      drop.style.left = `${cx}px`;
-      drop.style.top  = `${cy}px`;
-      drop.style.setProperty("--dx", `${Math.cos(angle) * dist}px`);
-      drop.style.setProperty("--dy", `${Math.sin(angle) * dist}px`);
-      drop.style.animationDelay = `${Math.random() * 40}ms`;
+      drop.style.cssText = `left:${this.x}px;top:${this.y}px;animation-delay:${Math.random() * 40}ms`;
+      drop.style.setProperty("--dx", `${Math.cos(a) * d}px`);
+      drop.style.setProperty("--dy", `${Math.sin(a) * d}px`);
       bubbleField.appendChild(drop);
-      setTimeout(() => drop.remove(), 560);
+      setTimeout(() => drop.remove(), 580);
     }
-
-    setTimeout(() => { this.el.remove(); ring.remove(); }, 480);
+    setTimeout(() => ring.remove(), 500);
   }
 
-  destroy() { this.el.remove(); }
+  destroy() { this.video.pause(); this.video.src = ""; }
 }
 
 const startBubbles = (urls) => {
   stopBubbles();
-  // deduplicate same as renderGrid
   const seen = new Set();
   const unique = urls.filter(u => {
     const k = normalizeUrl(u);
-    if (seen.has(k)) return false;
-    seen.add(k);
-    return true;
+    if (seen.has(k)) return false; seen.add(k); return true;
   });
-
-  const W = bubbleField.offsetWidth  || window.innerWidth;
-  const H = bubbleField.offsetHeight || window.innerHeight;
+  _initBubbleCanvas();
+  const W = _bubbleCanvas.width, H = _bubbleCanvas.height;
   _bubbles = unique.map((url, i) => new PrecogBubble(url, i, W, H));
-
   const loop = () => {
-    const W = bubbleField.offsetWidth;
-    const H = bubbleField.offsetHeight;
-    _bubbles.forEach(b => b.update(W, H));
+    const W = _bubbleCanvas.width, H = _bubbleCanvas.height;
+    _bubbleCtx.clearRect(0, 0, W, H);
+    for (const b of [..._bubbles]) b.update(W, H);
+    for (const b of _bubbles) _drawBubble(_bubbleCtx, b);
     _bubbleRafId = requestAnimationFrame(loop);
   };
   _bubbleRafId = requestAnimationFrame(loop);
@@ -263,8 +411,9 @@ const startBubbles = (urls) => {
 
 const stopBubbles = () => {
   if (_bubbleRafId) { cancelAnimationFrame(_bubbleRafId); _bubbleRafId = null; }
-  _bubbles.forEach(b => b.destroy());
+  for (const b of _bubbles) b.destroy();
   _bubbles = [];
+  _teardownBubbleCanvas();
   bubbleModalVideo.pause();
   bubbleModalVideo.src = "";
   bubbleModal.classList.remove("open");
