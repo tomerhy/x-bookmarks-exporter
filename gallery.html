@@ -214,6 +214,471 @@
     #lang-selector:hover {
       border-color: rgba(124, 156, 255, 0.6);
     }
+
+    /* ═══════════════════════════════════════════════════
+       VIEW TOGGLE BUTTON (shared)
+    ═══════════════════════════════════════════════════ */
+    #view-toggle {
+      display: flex;
+      gap: 3px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 8px;
+      padding: 3px;
+    }
+    .view-btn {
+      padding: 5px 13px;
+      font-size: 11px;
+      border-radius: 6px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: #a3b1c6;
+      cursor: pointer;
+      box-shadow: none;
+      letter-spacing: 0.3px;
+      transition: color 120ms ease, background 120ms ease, border-color 120ms ease;
+    }
+    .view-btn:hover { color: #e6e9ef; transform: none; border-color: transparent; }
+    .view-btn.active-view {
+      background: rgba(124, 156, 255, 0.15);
+      border-color: rgba(124, 156, 255, 0.3);
+      color: #7c9cff;
+    }
+
+    /* ═══════════════════════════════════════════════════
+       PRECOG MODE — MINORITY REPORT LAYOUT
+    ═══════════════════════════════════════════════════ */
+
+    /* Full-viewport immersive layout */
+    body.precog-mode {
+      background: #020810;
+      padding: 0;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Animated grid background */
+    body.precog-mode::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0,212,255,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,212,255,0.04) 1px, transparent 1px);
+      background-size: 52px 52px;
+      pointer-events: none;
+      z-index: 0;
+      animation: precog-grid 25s linear infinite;
+    }
+    @keyframes precog-grid { to { background-position: 52px 52px; } }
+    body.precog-mode > * { position: relative; z-index: 1; }
+
+    /* Header — compact, flush */
+    body.precog-mode h2 {
+      flex: 0 0 auto;
+      padding: 10px 20px;
+      margin: 0;
+      border-bottom: 1px solid rgba(0,212,255,0.12);
+    }
+    body.precog-mode .view-btn.active-view {
+      background: rgba(0,212,255,0.1);
+      border-color: rgba(0,212,255,0.35);
+      color: #00d4ff;
+    }
+
+    /* Classic layout hidden in precog — bubbles take over */
+    body.precog-mode #layout { display: none !important; }
+
+    /* Bubble field fills all space below header */
+    #bubble-field {
+      display: none;
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+    }
+    body.precog-mode #bubble-field { display: block; }
+
+    /* Player panel: fills all space except filmstrip */
+    body.precog-mode #player-wrap {
+      flex: 1;
+      min-height: 0;
+      width: 100%;
+      max-width: none;
+      margin: 0;
+      background: rgba(0,8,18,0.92);
+      border: 1px solid rgba(0,212,255,0.22);
+      box-shadow: 0 0 60px rgba(0,212,255,0.07), 0 30px 80px rgba(0,0,0,0.7);
+      backdrop-filter: blur(14px);
+      overflow: visible;
+      display: flex;
+      flex-direction: column;
+      padding: 10px 12px 8px;
+      box-sizing: border-box;
+      position: relative;
+    }
+
+    /* Corner brackets */
+    body.precog-mode #player-wrap::before {
+      content: '';
+      position: absolute;
+      inset: -7px;
+      background:
+        linear-gradient(#00d4ff,#00d4ff) top    left  / 22px 2px no-repeat,
+        linear-gradient(#00d4ff,#00d4ff) top    left  / 2px 22px no-repeat,
+        linear-gradient(#00d4ff,#00d4ff) top    right / 22px 2px no-repeat,
+        linear-gradient(#00d4ff,#00d4ff) top    right / 2px 22px no-repeat,
+        linear-gradient(#00d4ff,#00d4ff) bottom left  / 22px 2px no-repeat,
+        linear-gradient(#00d4ff,#00d4ff) bottom left  / 2px 22px no-repeat,
+        linear-gradient(#00d4ff,#00d4ff) bottom right / 22px 2px no-repeat,
+        linear-gradient(#00d4ff,#00d4ff) bottom right / 2px 22px no-repeat;
+      pointer-events: none;
+      opacity: 0.65;
+    }
+
+    /* HUD bar */
+    body.precog-mode #precog-hud {
+      display: flex !important;
+      flex: 0 0 auto;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+      font-family: 'SF Mono', 'Courier New', monospace;
+      font-size: 10px;
+      letter-spacing: 1.8px;
+      color: rgba(0,212,255,0.55);
+      text-transform: uppercase;
+    }
+    .hud-blink {
+      display: inline-block;
+      color: #00d4ff;
+      animation: hud-blink 1.8s ease-in-out infinite;
+      margin-right: 4px;
+    }
+    @keyframes hud-blink { 0%,100%{opacity:1} 50%{opacity:0.15} }
+
+    /* Video fills all remaining space in panel */
+    body.precog-mode #player {
+      flex: 1;
+      min-height: 0;
+      width: 100%;
+      max-height: none;
+      border-radius: 8px;
+      background: #000;
+      outline: 1px solid rgba(0,212,255,0.1);
+      transition: filter 0.06s ease, opacity 0.18s ease;
+    }
+
+    .scan-sweep-line { display: none; }
+
+    /* Scanline texture */
+    .scanline-overlay {
+      display: none;
+      position: absolute;
+      left: 12px; right: 12px;
+      top: 32px;
+      bottom: 105px;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 3px,
+        rgba(0,0,0,0.035) 3px,
+        rgba(0,0,0,0.035) 4px
+      );
+      pointer-events: none;
+      z-index: 3;
+      border-radius: 8px;
+    }
+    body.precog-mode .scanline-overlay { display: block !important; }
+
+    /* Controls strip — compact */
+    body.precog-mode .actions {
+      flex: 0 0 auto;
+      margin-top: 6px;
+      gap: 6px;
+    }
+    body.precog-mode .toggle {
+      flex: 0 0 auto;
+      color: rgba(0,212,255,0.5);
+      margin-top: 3px;
+    }
+    body.precog-mode #count,
+    body.precog-mode #status {
+      font-family: 'SF Mono', 'Courier New', monospace;
+      font-size: 10px;
+      letter-spacing: 0.6px;
+      color: rgba(0,212,255,0.45);
+      margin-top: 2px;
+    }
+    body.precog-mode #progress  { background: rgba(0,212,255,0.07); margin-top: 3px; }
+    body.precog-mode #progress-bar {
+      background: linear-gradient(90deg, #00d4ff, #0055ff);
+      box-shadow: 0 0 8px rgba(0,212,255,0.5);
+    }
+    body.precog-mode #lang-selector {
+      background: rgba(0,12,26,0.85);
+      border-color: rgba(0,212,255,0.18);
+      color: rgba(0,212,255,0.55);
+      margin-top: 3px;
+    }
+    body.precog-mode button:not(.view-btn):not(#header-donate) {
+      background: rgba(0,12,26,0.85);
+      border-color: rgba(0,212,255,0.18);
+      color: #7dcfea;
+    }
+    body.precog-mode button:not(.view-btn):not(#header-donate):hover {
+      border-color: rgba(0,212,255,0.55);
+      box-shadow: 0 0 14px rgba(0,212,255,0.15);
+      color: #00d4ff;
+      transform: translateY(-1px);
+    }
+    body.precog-mode .badge {
+      background: linear-gradient(135deg,#004466,#006688);
+      color: #00d4ff;
+    }
+
+    /* ── Floating bubble ── */
+    .precog-bubble {
+      position: absolute;
+      left: 0;
+      top: 0;
+      border-radius: 50%;
+      cursor: pointer;
+      overflow: hidden;
+      z-index: 10;
+      background: #020c1a;
+      /* static depth shadow — not animated, no repaint */
+      box-shadow:
+        inset  0   0   18px rgba(0,100,255,0.22),
+        inset -5px -5px 15px rgba(0,40,140,0.38);
+      transition:
+        width         0.44s cubic-bezier(0.34,1.4,0.64,1),
+        height        0.44s cubic-bezier(0.34,1.4,0.64,1),
+        border-radius 0.38s ease;
+      /* glow via filter — GPU-composited, zero repaints */
+      animation: bubble-breathe 3s ease-in-out infinite alternate;
+      will-change: transform, filter;
+    }
+
+    @keyframes bubble-breathe {
+      from { filter: drop-shadow(0 0 5px  rgba(0,212,255,0.65)) drop-shadow(0 0 16px rgba(0,212,255,0.28)); }
+      to   { filter: drop-shadow(0 0 12px rgba(0,212,255,1.00)) drop-shadow(0 0 32px rgba(0,212,255,0.55)); }
+    }
+
+    /* glass sphere overlay — sits above video, disappears on expand */
+    .precog-bubble::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background:
+        /* specular highlight — tight bright dot top-left */
+        radial-gradient(circle at 30% 26%,
+          rgba(255,255,255,0.90) 0%,
+          rgba(220,245,255,0.55) 9%,
+          transparent           26%
+        ),
+        /* secondary sheen bottom-right — gives depth */
+        radial-gradient(circle at 72% 74%,
+          rgba(0,100,200,0.22) 0%,
+          transparent          40%
+        ),
+        /* limb darkening — edges curve away from viewer */
+        radial-gradient(circle,
+          transparent           42%,
+          rgba(0,8,30,0.30)     68%,
+          rgba(0,4,18,0.82)    100%
+        );
+      pointer-events: none;
+      transition: opacity 0.28s ease;
+      z-index: 1;
+    }
+
+    .precog-bubble video {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0.92;
+      border-radius: 50%;
+      /* scale up slightly so the masked edges still fill the sphere */
+      transform: scale(1.08);
+      /* radial mask fades image toward edges — simulates curving away */
+      -webkit-mask-image: radial-gradient(circle,
+        white 0%,
+        white 52%,
+        rgba(255,255,255,0.80) 68%,
+        rgba(255,255,255,0.25) 84%,
+        transparent            100%
+      );
+      mask-image: radial-gradient(circle,
+        white 0%,
+        white 52%,
+        rgba(255,255,255,0.80) 68%,
+        rgba(255,255,255,0.25) 84%,
+        transparent            100%
+      );
+      transition: opacity 0.28s ease, border-radius 0.38s ease,
+                  transform 0.38s ease, mask-image 0.28s ease;
+    }
+
+    .precog-bubble.expanded {
+      width: 300px !important;
+      height: 220px !important;
+      border-radius: 14px;
+      filter: drop-shadow(0 0 28px rgba(0,212,255,0.55)) drop-shadow(0 0 60px rgba(0,0,0,0.88)) !important;
+      z-index: 200;
+      animation: none;
+    }
+
+    .precog-bubble.expanded::after { opacity: 0; }
+
+    .precog-bubble.expanded video {
+      opacity: 1;
+      border-radius: 0;
+      transform: scale(1);
+      -webkit-mask-image: none;
+      mask-image: none;
+    }
+
+    /* ── Bubble modal ── */
+    #bubble-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 900;
+      align-items: center;
+      justify-content: center;
+    }
+    #bubble-modal.open { display: flex; }
+
+    #bubble-modal-bg {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+    }
+
+    #bubble-modal-box {
+      position: relative;
+      z-index: 1;
+      width: min(820px, 92vw);
+      max-height: 90vh;
+      aspect-ratio: 16 / 9;
+      border-radius: 18px;
+      overflow: hidden;
+      background: #000;
+      box-shadow:
+        0 0 0 1px rgba(0,212,255,0.22),
+        0 0 80px rgba(0,212,255,0.18),
+        0 40px 120px rgba(0,0,0,0.95);
+      animation: modal-enter 0.38s cubic-bezier(0.34,1.4,0.64,1) both;
+    }
+
+    @keyframes modal-enter {
+      from { transform: scale(0.55); opacity: 0; }
+      to   { transform: scale(1);    opacity: 1; }
+    }
+
+    #bubble-modal-video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+      background: #000;
+    }
+
+    #bubble-modal-close {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      z-index: 10;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.28);
+      background: rgba(0,0,0,0.7);
+      color: #fff;
+      font-size: 16px;
+      line-height: 1;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      transition: background 0.15s ease, transform 0.12s ease;
+    }
+    #bubble-modal-close:hover {
+      background: rgba(200,40,40,0.85);
+      transform: scale(1.1);
+    }
+
+    .precog-bubble.popping {
+      animation: bubble-pop 0.12s ease-in forwards !important;
+      pointer-events: none;
+    }
+
+    @keyframes bubble-pop {
+      0%   { opacity: 1; filter: brightness(1); }
+      60%  { opacity: 0.7; filter: brightness(2.8) saturate(0); }
+      100% { opacity: 0; filter: brightness(1); }
+    }
+
+    .bubble-pop-ring {
+      position: absolute;
+      border-radius: 50%;
+      border: 1.5px solid rgba(0, 212, 255, 0.85);
+      box-shadow: 0 0 8px rgba(0, 212, 255, 0.5), inset 0 0 6px rgba(0, 212, 255, 0.2);
+      transform: translate(-50%, -50%) scale(1);
+      pointer-events: none;
+      animation: ring-expand 0.45s ease-out forwards;
+    }
+
+    @keyframes ring-expand {
+      0%   { transform: translate(-50%, -50%) scale(1);   opacity: 0.9; }
+      100% { transform: translate(-50%, -50%) scale(3);   opacity: 0; }
+    }
+
+    .bubble-pop-drop {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: rgba(0, 212, 255, 0.9);
+      box-shadow: 0 0 4px rgba(0, 212, 255, 0.8);
+      pointer-events: none;
+      animation: drop-scatter 0.5s ease-out forwards;
+    }
+
+    @keyframes drop-scatter {
+      0%   { transform: translate(0, 0) scale(1); opacity: 0.9; }
+      100% { transform: translate(var(--dx, 0), var(--dy, 0)) scale(0); opacity: 0; }
+    }
+
+    /* ── Glitch effect on video switch ── */
+    @keyframes precog-glitch {
+      0%   { filter: hue-rotate(90deg)  brightness(2.2) saturate(4); transform: translateX(-5px) skewX( 4deg); }
+      25%  { filter: hue-rotate(-70deg) brightness(1.8) saturate(2); transform: translateX( 5px) skewX(-3deg); }
+      50%  { filter: brightness(3.5) saturate(0) invert(0.1);        transform: translateX(-3px); }
+      75%  { filter: hue-rotate(180deg) brightness(1.3);             transform: translateX( 2px) skewX( 1deg); }
+      100% { filter: none;                                            transform: none; }
+    }
+    body.precog-mode #player.glitching {
+      animation: precog-glitch 0.26s steps(4) forwards;
+    }
+
+    /* ── Mode switch scan-in ── */
+    body.precog-entering #layout {
+      animation: precog-scan-in 0.5s cubic-bezier(0.22,1,0.36,1);
+    }
+    @keyframes precog-scan-in {
+      0%   { opacity:0; clip-path: inset(0 0 100% 0); }
+      100% { opacity:1; clip-path: inset(0 0 0%   0); }
+    }
   </style>
 </head>
 <body>
@@ -222,11 +687,22 @@
       <span data-i18n="videoGallery">Video Gallery</span>
       <span id="version"></span>
     </div>
+    <div id="view-toggle">
+      <button class="view-btn active-view" id="btn-classic">⊞ Classic</button>
+      <button class="view-btn" id="btn-precog">◉ Bubble Mode</button>
+    </div>
     <button id="header-donate" data-i18n="donate">Donate</button>
   </h2>
   <div id="layout">
     <div id="player-wrap">
+      <!-- HUD bar — only visible in precog mode -->
+      <div id="precog-hud" style="display:none">
+        <span><span class="hud-blink">●</span>BUBBLE MODE</span>
+        <span>MEDIA OBJECTS: <span id="hud-count">0</span></span>
+      </div>
       <video id="player" controls></video>
+      <div class="scanline-overlay"></div>
+      <div class="scan-sweep-line"></div>
     <div class="actions">
         <button id="export" data-i18n="exportUrls">Export URLs</button>
       <button id="import" data-i18n="importUrls">Import URLs</button>
@@ -250,6 +726,14 @@
     </div>
     <div id="grid"></div>
   </div>
+  <div id="bubble-modal">
+    <div id="bubble-modal-bg"></div>
+    <div id="bubble-modal-box">
+      <button id="bubble-modal-close">✕</button>
+      <video id="bubble-modal-video" controls playsinline></video>
+    </div>
+  </div>
+  <div id="bubble-field"></div>
   <script src="i18n.js"></script>
   <script src="analytics.js"></script>
   <script src="gallery.js"></script>

@@ -36,6 +36,16 @@
       border: 1px solid rgba(124, 156, 255, 0.4);
       background: rgba(124, 156, 255, 0.08);
     }
+    #level-badge {
+      font-size: 11px;
+      padding: 2px 7px;
+      border-radius: 999px;
+      border: 1px solid rgba(205, 127, 50, 0.4);
+      background: rgba(205, 127, 50, 0.1);
+      color: #cd7f32;
+      font-weight: 600;
+      transition: color 0.4s ease, border-color 0.4s ease, background 0.4s ease;
+    }
     #header-donate {
       background: linear-gradient(180deg, #f2d27a, #caa13a);
       color: #1a1406;
@@ -76,26 +86,100 @@
     }
     #stats {
       margin-top: 12px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
     }
     .stat-card {
-      padding: 12px 14px;
+      padding: 10px 12px;
       border-radius: 10px;
       background: linear-gradient(135deg, #1a2332, #141b28);
       border: 1px solid rgba(124, 156, 255, 0.15);
       text-align: center;
     }
     .stat-value {
-      font-size: 28px;
+      font-size: 24px;
       font-weight: 600;
       color: #7c9cff;
       display: block;
-      margin-bottom: 4px;
+      margin-bottom: 3px;
     }
     .stat-label {
-      font-size: 11px;
+      font-size: 10px;
       color: #a3b1c6;
       text-transform: uppercase;
       letter-spacing: 0.5px;
+    }
+    /* Last session recall bar */
+    #last-session {
+      margin-top: 8px;
+      padding: 8px 12px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #141f2e, #0f1822);
+      border: 1px solid rgba(124, 156, 255, 0.1);
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    #last-session-text {
+      font-size: 11px;
+      color: #a3b1c6;
+    }
+    #recall-btn {
+      padding: 4px 10px;
+      font-size: 10px;
+      border-radius: 6px;
+      background: rgba(124, 156, 255, 0.12);
+      border: 1px solid rgba(124, 156, 255, 0.3);
+      color: #7c9cff;
+      cursor: pointer;
+      box-shadow: none;
+      white-space: nowrap;
+    }
+    #recall-btn:hover {
+      background: rgba(124, 156, 255, 0.22);
+      border-color: rgba(124, 156, 255, 0.6);
+      transform: translateY(-1px);
+    }
+    /* Share haul button */
+    #share-btn {
+      display: none;
+      width: 100%;
+      margin-top: 8px;
+      padding: 9px 12px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #1a2a3a, #142030);
+      border: 1px solid rgba(29, 161, 242, 0.35);
+      color: #5bb8f5;
+      font-size: 12px;
+      letter-spacing: 0.2px;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(29, 161, 242, 0.1);
+      transition: transform 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+    }
+    #share-btn:hover {
+      transform: translateY(-1px);
+      border-color: rgba(29, 161, 242, 0.65);
+      box-shadow: 0 6px 20px rgba(29, 161, 242, 0.2);
+    }
+    /* Milestone toast */
+    #milestone-toast {
+      display: none;
+      margin-bottom: 10px;
+      padding: 9px 14px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #1e2a14, #162010);
+      border: 1px solid rgba(80, 200, 80, 0.4);
+      color: #7ee87e;
+      font-size: 12px;
+      font-weight: 500;
+      text-align: center;
+      animation: milestone-in 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    @keyframes milestone-in {
+      from { opacity: 0; transform: scale(0.88) translateY(-6px); }
+      to   { opacity: 1; transform: scale(1) translateY(0); }
     }
     #status {
       margin-top: 8px;
@@ -325,19 +409,30 @@
     <div class="header-left">
       <span data-i18n="videoGallery">Video Gallery</span>
       <span id="version"></span>
+      <span id="level-badge">🥉 Bronze</span>
     </div>
     <button id="header-donate" data-i18n="donate">Donate</button>
   </h3>
+  <div id="milestone-toast"></div>
   <div class="actions">
     <button id="auto-scroll" data-i18n="autoScroll">Auto Scroll</button>
     <button id="open-gallery" data-i18n="openGallery">Open Gallery</button>
     <button id="clear" data-i18n="clear">Clear</button>
   </div>
+  <button id="share-btn">🐦 Share your haul</button>
   <div id="stats">
     <div class="stat-card">
       <span class="stat-value" id="video-count">-</span>
-      <span class="stat-label" data-i18n="totalVideos">Total Videos</span>
+      <span class="stat-label">This Session</span>
     </div>
+    <div class="stat-card">
+      <span class="stat-value" id="all-time-count">-</span>
+      <span class="stat-label">All Time</span>
+    </div>
+  </div>
+  <div id="last-session">
+    <span id="last-session-text"></span>
+    <button id="recall-btn">↩ Recall</button>
   </div>
   <select id="lang-selector">
     <option value="en">English</option>
