@@ -70,7 +70,7 @@ const applyMode = (mode, animate = false) => {
   btnPrecog.classList.toggle("active-view", isPrecog);
   if (isPrecog) {
     chrome.storage.local.get({ videoUrls: [] }, (data) => {
-      startBubbles(data.videoUrls || []);
+      startBubbles(normalizeVideoItems(data.videoUrls || []));
     });
     if (animate) {
       document.body.classList.add("precog-entering");
@@ -271,18 +271,24 @@ function _onBubbleClick(e) {
   const hit  = _hitBubble(e.clientX - rect.left, e.clientY - rect.top);
   if (!hit) return;
   _videosPlayedCount += 1;
-  if (window.Analytics) Analytics.sendEvent("video_play", {
-    video_index: hit.index,
-    format: hit.url.includes(".m3u8") ? "hls" : "mp4",
-    video_path: normalizeUrl(hit.url),
-    source: "bubble_expand",
-  });
+  if (window.Analytics) {
+    const p = {
+      video_index: hit.index,
+      format: hit.url.includes(".m3u8") ? "hls" : "mp4",
+      video_path: normalizeUrl(hit.url),
+      video_url: hit.url,
+      tweet_url: analyticsTweetUrl(hit.tweetId),
+      source: "bubble_expand",
+    };
+    Analytics.sendEvent("video_play", p);
+  }
   openBubbleModal(hit);
 }
 
 class PrecogBubble {
-  constructor(url, index, W, H) {
-    this.url   = url;
+  constructor(url, tweetId, index, W, H) {
+    this.url = url;
+    this.tweetId = tweetId;
     this.index = index;
     const r    = 32 + Math.random() * 24;   // 32–56 px radius → 64–112 px diameter
     this._r    = r;
@@ -389,16 +395,21 @@ class PrecogBubble {
   destroy() { this.video.pause(); this.video.src = ""; }
 }
 
-const startBubbles = (urls) => {
+const startBubbles = (items) => {
   stopBubbles();
   const seen = new Set();
-  const unique = urls.filter(u => {
+  const unique = [];
+  for (const it of items) {
+    const u = typeof it === "string" ? it : it?.url;
+    if (!u) continue;
     const k = normalizeUrl(u);
-    if (seen.has(k)) return false; seen.add(k); return true;
-  });
+    if (seen.has(k)) continue;
+    seen.add(k);
+    unique.push(typeof it === "string" ? { url: it } : it);
+  }
   _initBubbleCanvas();
   const W = _bubbleCanvas.width, H = _bubbleCanvas.height;
-  _bubbles = unique.map((url, i) => new PrecogBubble(url, i, W, H));
+  _bubbles = unique.map((it, i) => new PrecogBubble(it.url, it.tweetId, i, W, H));
   const loop = () => {
     const W = _bubbleCanvas.width, H = _bubbleCanvas.height;
     _bubbleCtx.clearRect(0, 0, W, H);
@@ -432,6 +443,34 @@ const progressBar = document.getElementById("progress-bar");
 const fileInput = document.getElementById("file-input");
 const versionEl = document.getElementById("version");
 const langSelector = document.getElementById("lang-selector");
+
+let _tweetMap = {};
+
+/** Plain URL lines in GA when we could not tie the CDN URL to an X post */
+const TWEET_URL_NOT_LINKED = "not_linked";
+
+const normalizeVideoItems = (raw) => {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .map((item) => {
+      if (typeof item === "string") return { url: item };
+      if (item && typeof item.url === "string") {
+        return {
+          url: item.url,
+          tweetId: item.tweetId ? String(item.tweetId) : undefined,
+        };
+      }
+      return null;
+    })
+    .filter((x) => x && x.url && x.url.includes("video.twimg.com"));
+};
+
+const analyticsTweetUrl = (tweetId) => {
+  if (tweetId && /^\d+$/.test(String(tweetId))) {
+    return `https://x.com/i/status/${tweetId}`;
+  }
+  return TWEET_URL_NOT_LINKED;
+};
 
 const normalizeUrl = (url) => {
   try {
@@ -677,9 +716,10 @@ const setupLazyVideos = (root) => {
   videos.forEach((video) => observer.observe(video));
 };
 
-const renderGrid = (urls) => {
+const renderGrid = (raw) => {
+  const items = normalizeVideoItems(Array.isArray(raw) ? raw : []);
   grid.innerHTML = "";
-  if (!urls.length) {
+  if (!items.length) {
     const empty = document.createElement("div");
     empty.textContent = I18n.getMessage("noVideosYet", "No videos captured yet.");
     empty.style.fontSize = "13px";
@@ -690,20 +730,26 @@ const renderGrid = (urls) => {
   }
 
   const grouped = new Map();
-  urls.forEach((url) => {
-    const key = normalizeUrl(url);
+  items.forEach((item) => {
+    const key = normalizeUrl(item.url);
     if (!grouped.has(key)) grouped.set(key, []);
-    grouped.get(key).push(url);
+    grouped.get(key).push(item);
   });
 
-  const entries = Array.from(grouped.values()).map((list) => ({
-    url: list[0],
-    count: list.length,
-    bestResolution: getBestResolution(list),
-    hasHls: list.some((u) => u.includes(".m3u8")),
-    hasMp4: list.some((u) => u.includes(".mp4"))
-  }));
-  countEl.textContent = `${I18n.getMessage("videos", "Videos")}: ${entries.length} (${I18n.getMessage("urls", "URLs")}: ${urls.length})`;
+  const entries = Array.from(grouped.values()).map((list) => {
+    const urls = list.map((x) => x.url);
+    const tweetId = list.map((x) => x.tweetId).find(Boolean);
+    return {
+      url: list[0].url,
+      tweetId,
+      variantUrls: urls,
+      count: list.length,
+      bestResolution: getBestResolution(urls),
+      hasHls: urls.some((u) => u.includes(".m3u8")),
+      hasMp4: urls.some((u) => u.includes(".mp4")),
+    };
+  });
+  countEl.textContent = `${I18n.getMessage("videos", "Videos")}: ${entries.length} (${I18n.getMessage("urls", "URLs")}: ${items.length})`;
   setStatus("");
 
   entries.forEach((entry, index) => {
@@ -775,6 +821,8 @@ const renderGrid = (urls) => {
           format: entry.hasHls ? "hls" : "mp4",
           total_in_grid: entries.length,
           video_path: normalizeUrl(url),
+          video_url: url,
+          tweet_url: analyticsTweetUrl(entry.tweetId),
         });
       }
     });
@@ -786,6 +834,8 @@ const renderGrid = (urls) => {
         Analytics.trackFeatureUsage("video_download", {
           format: isHls ? "hls" : "mp4",
           video_path: normalizeUrl(url),
+          video_url: url,
+          tweet_url: analyticsTweetUrl(entry.tweetId),
         });
       }
       try {
@@ -816,11 +866,20 @@ const renderGrid = (urls) => {
 };
 
 const loadUrls = () => {
-  chrome.storage.local.get({ videoUrls: [] }, (data) => {
-    const urls = data.videoUrls || [];
-    renderGrid(urls);
+  chrome.storage.local.get({ videoUrls: [], videoTweetMap: {} }, (data) => {
+    _tweetMap = { ...(data.videoTweetMap || {}) };
+    const items = normalizeVideoItems(data.videoUrls || []);
+    items.forEach(({ url, tweetId }) => {
+      if (!tweetId) return;
+      _tweetMap[url] = tweetId;
+      try {
+        const u = new URL(url);
+        _tweetMap[`${u.origin}${u.pathname}`] = tweetId;
+      } catch {}
+    });
+    renderGrid(items);
     if (document.body.classList.contains("precog-mode")) {
-      startBubbles(urls);
+      startBubbles(items);
     }
   });
 };
@@ -833,7 +892,8 @@ const setVersion = () => {
 copyBtn.onclick = () => {
   if (window.Analytics) Analytics.trackButtonClick("copy_urls", "gallery");
   chrome.storage.local.get({ videoUrls: [] }, (data) => {
-    const text = (data.videoUrls || []).join("\n");
+    const lines = normalizeVideoItems(data.videoUrls || []).map((x) => x.url);
+    const text = lines.join("\n");
     navigator.clipboard.writeText(text).catch(() => {});
   });
 };
@@ -841,7 +901,8 @@ copyBtn.onclick = () => {
 exportBtn.onclick = () => {
   if (window.Analytics) Analytics.trackButtonClick("export_urls", "gallery");
   chrome.storage.local.get({ videoUrls: [] }, (data) => {
-    const text = (data.videoUrls || []).join("\n");
+    const lines = normalizeVideoItems(data.videoUrls || []).map((x) => x.url);
+    const text = lines.join("\n");
     const blob = new Blob([text], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -871,15 +932,16 @@ fileInput.onchange = () => {
   const reader = new FileReader();
   reader.onload = () => {
     const text = String(reader.result || "");
-    const urls = text
+    const urlLines = text
       .split(/\r?\n/)
       .map((line) => line.trim())
       .filter((line) => line.length);
     if (window.Analytics) {
-      Analytics.trackFeatureUsage("import_urls", { url_count: urls.length });
+      Analytics.trackFeatureUsage("import_urls", { url_count: urlLines.length });
     }
-    chrome.storage.local.set({ videoUrls: urls }, () => {
-      renderGrid(urls);
+    const videoUrls = urlLines.map((u) => ({ url: u }));
+    chrome.storage.local.set({ videoUrls }, () => {
+      renderGrid(videoUrls);
     });
   };
   reader.readAsText(file);
@@ -896,11 +958,15 @@ clearBtn.onclick = () => {
 
 chrome.storage.onChanged.addListener((changes, areaName) => {
   if (areaName !== "local") return;
+  if (changes.videoTweetMap) {
+    Object.assign(_tweetMap, changes.videoTweetMap.newValue || {});
+  }
   if (changes.videoUrls) {
-    const urls = changes.videoUrls.newValue || [];
-    renderGrid(urls);
+    const raw = changes.videoUrls.newValue || [];
+    const items = normalizeVideoItems(raw);
+    renderGrid(items);
     if (document.body.classList.contains("precog-mode")) {
-      startBubbles(urls);
+      startBubbles(items);
     }
   }
 });
@@ -935,12 +1001,8 @@ const initializeGallery = async () => {
   loadUrls();
   setVersion();
 
-  // Restore saved view mode
-  chrome.storage.local.get({ galleryMode: "classic" }, (data) => {
-    const mode = data.galleryMode || "classic";
-    if (mode === "precog") _bubbleModeEnterTime = Date.now();
-    applyMode(mode, false);
-  });
+  // Always start in classic mode (bubble mode hidden for now)
+  applyMode("classic", false);
 
   if (window.Analytics) {
     Analytics.trackPageView("gallery");

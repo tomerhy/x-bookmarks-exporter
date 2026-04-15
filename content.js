@@ -1,16 +1,17 @@
 (() => {
   if (window.__xBookmarksExporterInjected) return;
   window.__xBookmarksExporterInjected = true;
-  const send = (url) => {
+  const send = (url, tweetId) => {
     if (!url) return;
     if (!url.includes("video.twimg.com")) return;
     if (url.includes("mp4a") || url.includes("avc1")) return;
     if (url.includes(".mp4") || url.includes(".m3u8")) {
-      if (!chrome?.runtime?.sendMessage) return;
-      chrome.runtime.sendMessage({
-        type: "VIDEO_URL",
-        url
-      });
+      try {
+        if (!chrome?.runtime?.id) return;
+        const msg = { type: "VIDEO_URL", url };
+        if (tweetId) msg.tweetId = tweetId;
+        chrome.runtime.sendMessage(msg);
+      } catch {}
     }
   };
 
@@ -22,7 +23,7 @@
       send(url);
       if (response?.ok && shouldInspectJson(url, response)) {
         const clone = response.clone();
-        clone.json().then(extractVideoVariants).catch(() => {});
+        clone.json().then(runExtractors).catch(() => {});
       }
     } catch {}
     return response;
@@ -45,7 +46,7 @@
           this.responseType === "" || this.responseType === "text"
             ? this.responseText
             : JSON.stringify(this.response || {});
-        extractVideoVariants(JSON.parse(response));
+        runExtractors(JSON.parse(response));
       } catch {}
     });
     return originalSend.apply(this, args);
@@ -53,7 +54,10 @@
 
   function shouldInspectJson(url, response) {
     if (!url) return false;
-    if (!url.includes("/graphql/") && !url.includes("/timeline/")) return false;
+    const u = String(url).toLowerCase();
+    const isGraphql = u.includes("graphql");
+    if (!isGraphql && !u.includes("/timeline/") && !u.includes("bookmark")) return false;
+    if (isGraphql) return true;
     const contentType =
       response?.headers?.get?.("content-type") ||
       response?.getResponseHeader?.("content-type") ||
@@ -61,20 +65,115 @@
     return contentType.includes("json");
   }
 
+  function normalizeTweetId(raw) {
+    if (raw == null || raw === "") return null;
+    const s = String(raw).trim();
+    return /^\d+$/.test(s) ? s : null;
+  }
+
+  /** Parse /status/123… from expanded_url (X often omits parent tweet id elsewhere). */
+  function tweetIdFromExpandedUrl(m) {
+    const candidates = [m?.expanded_url, m?.url, m?.display_url].filter(Boolean);
+    for (const s of candidates) {
+      const str = String(s);
+      const m2 = str.match(/(?:twitter\.com|x\.com)\/[^/]+\/status\/(\d+)/i);
+      if (m2) return normalizeTweetId(m2[1]);
+      const mWeb = str.match(/\/i\/web\/status\/(\d+)/i);
+      if (mWeb) return normalizeTweetId(mWeb[1]);
+      const m3 = str.match(/\/status\/(\d+)/);
+      if (m3) return normalizeTweetId(m3[1]);
+    }
+    return null;
+  }
+
+  /** Tweet id for a media object (retweets point to original tweet). */
+  function tweetIdForMedia(m, fallbackTweetId) {
+    const fromMedia = normalizeTweetId(m?.source_status_id_str);
+    if (fromMedia) return fromMedia;
+    const fromUrl = tweetIdFromExpandedUrl(m);
+    if (fromUrl) return fromUrl;
+    return normalizeTweetId(fallbackTweetId);
+  }
+
+  /** Infer tweet id from a node that may be Tweet, TweetWithVisibilityResults, etc. */
+  function tweetIdFromNode(node) {
+    if (!node || typeof node !== "object") return null;
+    const legacyId = normalizeTweetId(node.legacy?.id_str);
+    if (legacyId) return legacyId;
+    const rest = normalizeTweetId(node.rest_id);
+    if (rest) return rest;
+    return normalizeTweetId(node.id_str);
+  }
+
+  /**
+   * Walk JSON with inherited tweet id so nested legacy/extended_entities
+   * still get the id from the parent Tweet (fixes GA "Tweet URL" = not set).
+   */
   function extractVideoVariants(root) {
+    const stack = [{ node: root, tweetId: null }];
+    while (stack.length) {
+      const { node, tweetId: parentTweetId } = stack.pop();
+      if (node == null) continue;
+      if (typeof node !== "object") continue;
+
+      if (Array.isArray(node)) {
+        for (let i = node.length - 1; i >= 0; i--) {
+          stack.push({ node: node[i], tweetId: parentTweetId });
+        }
+        continue;
+      }
+
+      const ownId = tweetIdFromNode(node);
+      const tweetId = ownId || parentTweetId;
+
+      const media =
+        node.legacy?.extended_entities?.media ||
+        node.extended_entities?.media ||
+        node.entities?.media;
+
+      if (media?.length) {
+        for (const m of media) {
+          if (!m?.video_info?.variants?.length) continue;
+          const id = tweetIdForMedia(m, tweetId);
+          if (!id) continue;
+          m.video_info.variants.forEach((v) => send(v.url, id));
+        }
+      }
+
+      const childTweetId = ownId || parentTweetId;
+      for (const v of Object.values(node)) {
+        stack.push({ node: v, tweetId: childTweetId });
+      }
+    }
+  }
+
+  /** Catch video media nodes that sit without a parent Tweet in the same branch. */
+  function extractOrphanVideoMedia(root) {
     const stack = [root];
     while (stack.length) {
       const node = stack.pop();
       if (!node || typeof node !== "object") continue;
       if (Array.isArray(node)) {
-        stack.push(...node);
+        for (const x of node) stack.push(x);
         continue;
       }
       if (node.video_info?.variants?.length) {
-        node.video_info.variants.forEach(v => send(v.url));
+        const id =
+          tweetIdFromExpandedUrl(node) ||
+          normalizeTweetId(node.source_status_id_str);
+        if (id) {
+          node.video_info.variants.forEach((v) => send(v.url, id));
+        }
       }
-      Object.values(node).forEach(v => stack.push(v));
+      for (const v of Object.values(node)) stack.push(v);
     }
+  }
+
+  function runExtractors(json) {
+    try {
+      extractVideoVariants(json);
+      extractOrphanVideoMedia(json);
+    } catch {}
   }
 
   try {
