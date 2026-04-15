@@ -276,8 +276,8 @@ function _onBubbleClick(e) {
       video_index: hit.index,
       format: hit.url.includes(".m3u8") ? "hls" : "mp4",
       video_path: normalizeUrl(hit.url),
-      video_url: hit.url,
-      tweet_url: hit.url,
+      video_url: stripVideoUrlForAnalytics(hit.url),
+      tweet_url: stripVideoUrlForAnalytics(hit.url),
       source: "bubble_expand",
     };
     Analytics.sendEvent("video_play", p);
@@ -469,6 +469,17 @@ const normalizeUrl = (url) => {
   } catch {
     return url.split("?")[0];
   }
+};
+
+/** Drop ?query and #fragment so analytics match a clean export line (e.g. ends at .m3u8). */
+const stripVideoUrlForAnalytics = (url) => {
+  if (!url || typeof url !== "string") return url;
+  const q = url.indexOf("?");
+  const h = url.indexOf("#");
+  let end = url.length;
+  if (q !== -1) end = Math.min(end, q);
+  if (h !== -1) end = Math.min(end, h);
+  return end < url.length ? url.slice(0, end) : url;
 };
 
 const extractResolution = (url) => {
@@ -811,8 +822,8 @@ const renderGrid = (raw) => {
           format: entry.hasHls ? "hls" : "mp4",
           total_in_grid: entries.length,
           video_path: normalizeUrl(url),
-          video_url: url,
-          tweet_url: url,
+          video_url: stripVideoUrlForAnalytics(url),
+          tweet_url: stripVideoUrlForAnalytics(url),
         });
       }
     });
@@ -824,8 +835,8 @@ const renderGrid = (raw) => {
         Analytics.trackFeatureUsage("video_download", {
           format: isHls ? "hls" : "mp4",
           video_path: normalizeUrl(url),
-          video_url: url,
-          tweet_url: url,
+          video_url: stripVideoUrlForAnalytics(url),
+          tweet_url: stripVideoUrlForAnalytics(url),
         });
       }
       try {
