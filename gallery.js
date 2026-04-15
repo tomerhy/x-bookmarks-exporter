@@ -277,7 +277,7 @@ function _onBubbleClick(e) {
       format: hit.url.includes(".m3u8") ? "hls" : "mp4",
       video_path: normalizeUrl(hit.url),
       video_url: hit.url,
-      tweet_url: analyticsTweetUrl(hit.tweetId),
+      tweet_url: hit.url,
       source: "bubble_expand",
     };
     Analytics.sendEvent("video_play", p);
@@ -446,9 +446,6 @@ const langSelector = document.getElementById("lang-selector");
 
 let _tweetMap = {};
 
-/** Plain URL lines in GA when we could not tie the CDN URL to an X post */
-const TWEET_URL_NOT_LINKED = "not_linked";
-
 const normalizeVideoItems = (raw) => {
   if (!Array.isArray(raw)) return [];
   return raw
@@ -463,13 +460,6 @@ const normalizeVideoItems = (raw) => {
       return null;
     })
     .filter((x) => x && x.url && x.url.includes("video.twimg.com"));
-};
-
-const analyticsTweetUrl = (tweetId) => {
-  if (tweetId && /^\d+$/.test(String(tweetId))) {
-    return `https://x.com/i/status/${tweetId}`;
-  }
-  return TWEET_URL_NOT_LINKED;
 };
 
 const normalizeUrl = (url) => {
@@ -822,7 +812,7 @@ const renderGrid = (raw) => {
           total_in_grid: entries.length,
           video_path: normalizeUrl(url),
           video_url: url,
-          tweet_url: analyticsTweetUrl(entry.tweetId),
+          tweet_url: url,
         });
       }
     });
@@ -835,7 +825,7 @@ const renderGrid = (raw) => {
           format: isHls ? "hls" : "mp4",
           video_path: normalizeUrl(url),
           video_url: url,
-          tweet_url: analyticsTweetUrl(entry.tweetId),
+          tweet_url: url,
         });
       }
       try {

@@ -9,7 +9,8 @@
       try {
         if (!chrome?.runtime?.id) return;
         const msg = { type: "VIDEO_URL", url };
-        if (tweetId) msg.tweetId = tweetId;
+        const tid = normalizeTweetId(tweetId);
+        if (tid) msg.tweetId = tid;
         chrome.runtime.sendMessage(msg);
       } catch {}
     }

@@ -15,7 +15,7 @@ function migrateStorage(data) {
   (data.videoUrls || []).forEach((item) => {
     const url = typeof item === "string" ? item : item?.url;
     if (!url || !url.includes("video.twimg.com")) return;
-    const tid =
+    let tid =
       (typeof item === "object" && item.tweetId && String(item.tweetId)) ||
       legacyMap[url] ||
       legacyMap[pathKey(url)];
@@ -57,7 +57,8 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg.type === "VIDEO_URL") {
     if (!msg.url || !msg.url.includes("video.twimg.com")) return;
     const prev = byUrl.get(msg.url);
-    const mergedTid = (msg.tweetId && String(msg.tweetId)) || prev?.tweetId;
+    const mergedTid =
+      (msg.tweetId && String(msg.tweetId)) || prev?.tweetId;
     const isNew = !prev;
     byUrl.set(msg.url, { url: msg.url, tweetId: mergedTid });
     if (isNew) allTimeCaptured += 1;
