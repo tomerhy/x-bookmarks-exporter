@@ -17,6 +17,7 @@ zip -r "$OUTPUT_DIR/$ZIP_NAME" \
   gallery.js \
   analytics.js \
   i18n.js \
+  tokens.css \
   _locales \
   assets/icons
 

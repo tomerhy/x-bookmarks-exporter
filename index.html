@@ -3,15 +3,18 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0b0f14" />
   <title>X Video Exporter - Download Videos from X Bookmarks</title>
   <meta name="description" content="Export and download videos from your X (Twitter) bookmarks. Auto-scroll, batch download, and organize your saved videos with ease." />
   <link rel="icon" type="image/png" href="assets/icons/icon-32.png" />
+  <link rel="stylesheet" href="tokens.css" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --primary: #7aa2f7;
-      --primary-dark: #5d8beb;
-      --secondary: #bb9af7;
+      /* Brand — anchored to the shared X palette in tokens.css */
+      --primary: var(--x-blue);
+      --primary-dark: var(--x-blue-dark);
+      --secondary: var(--x-purple);
       --bg-dark: #0d0d12;
       --bg-card: #14141b;
       --bg-elevated: #1a1a24;
@@ -35,6 +38,27 @@
       scroll-behavior: smooth;
     }
 
+    /* Keyboard focus ring — visible against the dark bg */
+    *:focus-visible {
+      outline: 2px solid var(--primary);
+      outline-offset: 2px;
+      border-radius: 4px;
+    }
+
+    /* Honor users with motion sensitivity */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+      .badge-dot { animation: none !important; }
+      .nav-cta:hover,
+      .btn-primary:hover,
+      .feature-card:hover { transform: none !important; }
+    }
+
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       background: var(--bg-dark);
@@ -50,7 +74,7 @@
       right: 0;
       bottom: 0;
       background: 
-        radial-gradient(ellipse at 20% 20%, rgba(122, 162, 247, 0.08) 0%, transparent 50%),
+        radial-gradient(ellipse at 20% 20%, rgba(29, 155, 240, 0.08) 0%, transparent 50%),
         radial-gradient(ellipse at 80% 80%, rgba(187, 154, 247, 0.06) 0%, transparent 50%);
       pointer-events: none;
       z-index: 0;
@@ -128,7 +152,7 @@
 
     .nav-cta:hover {
       transform: translateY(-2px);
-      box-shadow: 0 8px 30px rgba(122, 162, 247, 0.3);
+      box-shadow: 0 8px 30px rgba(29, 155, 240, 0.3);
     }
 
     .nav-cta svg {
@@ -213,7 +237,7 @@
 
     .btn-primary:hover {
       transform: translateY(-2px);
-      box-shadow: 0 12px 40px rgba(122, 162, 247, 0.35);
+      box-shadow: 0 12px 40px rgba(29, 155, 240, 0.35);
     }
 
     .btn-primary svg {
@@ -253,7 +277,7 @@
       margin: 0 auto;
       border-radius: 16px;
       overflow: hidden;
-      box-shadow: 0 20px 80px rgba(0, 0, 0, 0.5), 0 0 60px rgba(122, 162, 247, 0.1);
+      box-shadow: 0 20px 80px rgba(0, 0, 0, 0.5), 0 0 60px rgba(29, 155, 240, 0.1);
       border: 1px solid var(--border);
     }
 
@@ -323,7 +347,30 @@
       align-items: center;
       justify-content: center;
       margin-bottom: 20px;
-      font-size: 24px;
+      color: var(--primary);
+    }
+
+    /* Lucide-style SVG icons referenced from the inline sprite. */
+    .icon {
+      width: 18px;
+      height: 18px;
+      stroke: currentColor;
+      stroke-width: 2;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      flex-shrink: 0;
+      vertical-align: middle;
+    }
+    .icon-sm { width: 14px; height: 14px; }
+    .icon-lg { width: 24px; height: 24px; }
+    .icon-heart {
+      width: 14px;
+      height: 14px;
+      stroke: none;
+      fill: var(--error);
+      vertical-align: -2px;
+      margin: 0 2px;
     }
 
     .feature-card h3 {
@@ -490,7 +537,7 @@
     .feedback-form textarea:focus {
       outline: none;
       border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(122, 162, 247, 0.15);
+      box-shadow: 0 0 0 3px rgba(29, 155, 240, 0.15);
     }
 
     .feedback-form select {
@@ -594,6 +641,47 @@
   </style>
 </head>
 <body>
+  <!-- Lucide-style SVG icon sprite, referenced via <use href="#i-name"/> -->
+  <svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
+    <symbol id="i-chevrons-down" viewBox="0 0 24 24">
+      <path d="m7 6 5 5 5-5"/>
+      <path d="m7 13 5 5 5-5"/>
+    </symbol>
+    <symbol id="i-image" viewBox="0 0 24 24">
+      <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+      <circle cx="8.5" cy="8.5" r="1.5"/>
+      <polyline points="21 15 16 10 5 21"/>
+    </symbol>
+    <symbol id="i-download" viewBox="0 0 24 24">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+      <polyline points="7 10 12 15 17 10"/>
+      <line x1="12" y1="15" x2="12" y2="3"/>
+    </symbol>
+    <symbol id="i-film" viewBox="0 0 24 24">
+      <rect x="2" y="2" width="20" height="20" rx="2"/>
+      <line x1="7" y1="2" x2="7" y2="22"/>
+      <line x1="17" y1="2" x2="17" y2="22"/>
+      <line x1="2" y1="12" x2="22" y2="12"/>
+      <line x1="2" y1="7" x2="7" y2="7"/>
+      <line x1="2" y1="17" x2="7" y2="17"/>
+      <line x1="17" y1="17" x2="22" y2="17"/>
+      <line x1="17" y1="7" x2="22" y2="7"/>
+    </symbol>
+    <symbol id="i-arrow-down-up" viewBox="0 0 24 24">
+      <path d="m3 16 4 4 4-4"/>
+      <path d="M7 20V4"/>
+      <path d="m21 8-4-4-4 4"/>
+      <path d="M17 4v16"/>
+    </symbol>
+    <symbol id="i-shield-check" viewBox="0 0 24 24">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+      <path d="m9 12 2 2 4-4"/>
+    </symbol>
+    <symbol id="i-heart" viewBox="0 0 24 24">
+      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+    </symbol>
+  </svg>
+
   <!-- Navigation -->
   <nav>
     <div class="container nav-content">
@@ -648,37 +736,37 @@
       
       <div class="features-grid">
         <div class="feature-card">
-          <div class="feature-icon">📜</div>
+          <div class="feature-icon"><svg class="icon-lg" aria-hidden="true"><use href="#i-chevrons-down"/></svg></div>
           <h3>Auto-Scroll Capture</h3>
           <p>Automatically scroll through your X bookmarks while capturing all video URLs in the background.</p>
         </div>
-        
+
         <div class="feature-card">
-          <div class="feature-icon">🖼️</div>
+          <div class="feature-icon"><svg class="icon-lg" aria-hidden="true"><use href="#i-image"/></svg></div>
           <h3>Visual Gallery</h3>
           <p>Browse all captured videos in a beautiful gallery view with thumbnails and preview playback.</p>
         </div>
-        
+
         <div class="feature-card">
-          <div class="feature-icon">⬇️</div>
+          <div class="feature-icon"><svg class="icon-lg" aria-hidden="true"><use href="#i-download"/></svg></div>
           <h3>One-Click Download</h3>
           <p>Download any video as MP4 with a single click. Supports both direct MP4 and HLS streams.</p>
         </div>
-        
+
         <div class="feature-card">
-          <div class="feature-icon">🎥</div>
+          <div class="feature-icon"><svg class="icon-lg" aria-hidden="true"><use href="#i-film"/></svg></div>
           <h3>Quality Selection</h3>
           <p>Automatically captures the highest quality version available for each video.</p>
         </div>
-        
+
         <div class="feature-card">
-          <div class="feature-icon">📤</div>
+          <div class="feature-icon"><svg class="icon-lg" aria-hidden="true"><use href="#i-arrow-down-up"/></svg></div>
           <h3>Export & Import</h3>
           <p>Export your video URL list to a file and import it later. Never lose your collection.</p>
         </div>
-        
+
         <div class="feature-card">
-          <div class="feature-icon">🔒</div>
+          <div class="feature-icon"><svg class="icon-lg" aria-hidden="true"><use href="#i-shield-check"/></svg></div>
           <h3>100% Private</h3>
           <p>All processing happens locally in your browser. No data is ever sent to external servers.</p>
         </div>
@@ -783,9 +871,9 @@
           <div class="form-row">
             <select name="type" required>
               <option value="" disabled selected>Select feedback type...</option>
-              <option value="bug">🐛 Bug Report</option>
-              <option value="feature">💡 Feature Request</option>
-              <option value="general">💬 General Feedback</option>
+              <option value="bug">Bug Report</option>
+              <option value="feature">Feature Request</option>
+              <option value="general">General Feedback</option>
             </select>
           </div>
           <div class="form-row">
@@ -821,7 +909,7 @@
   <footer>
     <div class="container footer-content">
       <div class="footer-left">
-        Made with ❤️ by tomerhy
+        Made with <svg class="icon-heart" aria-hidden="true"><use href="#i-heart"/></svg> by tomerhy
         &nbsp;•&nbsp;
         © 2024 X Video Exporter
       </div>

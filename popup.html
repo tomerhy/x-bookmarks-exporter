@@ -2,376 +2,600 @@
 <html>
 <head>
   <meta charset="utf-8" />
+  <meta name="theme-color" content="#0b0f14" />
+  <link rel="stylesheet" href="tokens.css" />
   <style>
-    :root {
-      color-scheme: dark;
+    /* Popup-specific styles. Base tokens come from tokens.css; this block
+       only overrides or extends them for the popup surface. */
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    /* Keyboard focus ring — visible against the cosmic bg */
+    *:focus-visible {
+      outline: 2px solid var(--x-blue);
+      outline-offset: 2px;
+      border-radius: 4px;
     }
+
+    /* Honor users with motion sensitivity */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Segoe UI", sans-serif;
       width: 420px;
-      margin: 0;
-      padding: 14px;
-      background: linear-gradient(135deg, #0b0f14, #0f1622);
-      color: #e6e9ef;
+      padding: var(--space-4);
+      background: var(--x-bg);
+      color: var(--text-primary);
+      letter-spacing: -0.01em;
+      -webkit-font-smoothing: antialiased;
+      position: relative;
+      overflow: hidden;
     }
-    h3 {
-      margin: 0 0 12px;
+
+    /* ---------- Header ---------- */
+    .header {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      margin-bottom: var(--space-3);
+    }
+    /* Logo lives inside a button — easter-egg trigger for the About card.
+       The button itself is transparent; the logo image is the visual. */
+    .logo-btn {
+      flex: 0 0 auto;
+      width: 32px;
+      height: 32px;
+      min-height: 0;
+      padding: 0;
+      background: transparent;
+      border: none;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform var(--t-spring);
+    }
+    .logo-btn:hover {
+      background: transparent;
+      border-color: transparent;
+      transform: rotate(-6deg) scale(1.06);
+    }
+    .logo-btn:active { transform: rotate(0deg) scale(0.96); }
+    .logo {
+      width: 32px;
+      height: 32px;
+      border-radius: var(--radius-md);
+      box-shadow: 0 4px 14px var(--x-blue-glow);
+      display: block;
+    }
+    .title {
       font-size: 14px;
+      font-weight: 700;
       letter-spacing: 0.2px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      justify-content: space-between;
-    }
-    .header-left {
-      display: flex;
-      align-items: center;
-      gap: 8px;
+      margin: 0;
     }
     #version {
       font-size: 11px;
-      color: #7c9cff;
+      color: var(--x-blue);
       padding: 2px 6px;
-      border-radius: 999px;
-      border: 1px solid rgba(124, 156, 255, 0.4);
-      background: rgba(124, 156, 255, 0.08);
+      border-radius: var(--radius-pill);
+      border: 1px solid rgba(29, 155, 240, 0.4);
+      background: var(--x-blue-soft);
+      font-variant-numeric: tabular-nums;
+      margin-left: auto;
     }
-    #header-donate {
-      background: linear-gradient(180deg, #f2d27a, #caa13a);
-      color: #1a1406;
-      border-color: rgba(255, 221, 140, 0.8);
-      box-shadow: 0 8px 20px rgba(202, 161, 58, 0.35);
-      padding: 6px 12px;
-      border-radius: 8px;
-      border: 1px solid rgba(255, 221, 140, 0.8);
-      font-size: 11px;
-      letter-spacing: 0.2px;
-      cursor: pointer;
-      transition: transform 120ms ease, border-color 120ms ease;
-    }
-    #header-donate:hover {
-      border-color: rgba(255, 236, 180, 0.95);
-      transform: translateY(-1px);
-    }
+
+    /* ---------- Actions ---------- */
     .actions {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+    }
+    .btn-row {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-2);
     }
     button {
       padding: 10px 12px;
-      border-radius: 10px;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      background: linear-gradient(180deg, #1a2332, #131a26);
-      color: #e6e9ef;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-1);
+      background: var(--surface-1);
+      color: var(--text-primary);
       font-size: 12px;
+      font-weight: 600;
       letter-spacing: 0.2px;
       cursor: pointer;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
-      transition: transform 120ms ease, border-color 120ms ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition:
+        background-color var(--t-fast),
+        border-color var(--t-fast),
+        transform var(--t-spring),
+        box-shadow var(--t-base);
     }
     button:hover {
+      background: var(--surface-2);
+      border-color: rgba(29, 155, 240, 0.45);
       transform: translateY(-1px);
-      border-color: rgba(124, 156, 255, 0.6);
     }
-    #stats {
-      margin-top: 12px;
+    button:active { transform: translateY(0); }
+
+    /* Primary CTA — Auto Scroll */
+    .btn-primary {
+      background: linear-gradient(135deg, var(--x-blue), var(--x-blue-dark));
+      border-color: transparent;
+      color: #fff;
+      box-shadow: 0 4px 14px var(--x-blue-glow);
     }
-    .stat-card {
-      padding: 10px 12px;
-      border-radius: 10px;
-      background: linear-gradient(135deg, #1a2332, #141b28);
-      border: 1px solid rgba(124, 156, 255, 0.15);
+    .btn-primary:hover {
+      border-color: transparent;
+      box-shadow: 0 6px 20px var(--x-blue-glow);
+      transform: translateY(-2px);
+    }
+
+    /* Destructive — Clear, demoted to a quiet text-link pill */
+    .btn-danger {
+      align-self: center;
+      width: auto;
+      padding: 6px 12px;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--danger);
+      background: transparent;
+      border: 1px solid var(--danger-soft);
+    }
+    .btn-danger:hover {
+      background: var(--danger-soft);
+      border-color: var(--danger);
+      transform: none;
+    }
+
+    /* Confirmation-pending state for destructive actions — strong red pulse
+       so "click again to confirm" is unmistakable. */
+    .is-confirming {
+      background: var(--danger) !important;
+      color: #fff !important;
+      border-color: var(--danger) !important;
+      animation: confirm-pulse 1.4s ease-in-out infinite;
+    }
+    @keyframes confirm-pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.45); }
+      50%      { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+    }
+
+    /* ---------- Stats ---------- */
+    dl.stats {
+      margin-top: var(--space-3);
+    }
+    .stat {
+      padding: var(--space-3);
+      border-radius: var(--radius-md);
+      background: var(--surface-1);
+      border: 1px solid var(--x-blue-soft);
       text-align: center;
+      transition: transform var(--t-spring), border-color var(--t-base);
     }
-    .stat-value {
-      font-size: 24px;
-      font-weight: 600;
-      color: #7c9cff;
+    .stat:hover {
+      transform: translateY(-1px);
+      border-color: rgba(29, 155, 240, 0.30);
+    }
+    .stat-count {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--x-blue);
       display: block;
-      margin-bottom: 3px;
+      margin-bottom: 2px;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.02em;
     }
     .stat-label {
       font-size: 10px;
-      color: #a3b1c6;
+      color: var(--text-muted);
       text-transform: uppercase;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.6px;
+      font-weight: 600;
     }
-    #status {
-      margin-top: 8px;
-      font-size: 11px;
-      color: #ff8686;
+
+    /* Empty state — shown when no videos captured yet */
+    .stats-empty {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-1);
+      padding: var(--space-3);
+      background: var(--surface-1);
+      border-radius: var(--radius-md);
+      border: 1px dashed var(--border-2);
+      margin-top: var(--space-3);
       text-align: center;
     }
+    body.is-empty .stats { display: none; }
+    body.is-empty .stats-empty { display: flex; }
+    .stats-empty .se-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    .stats-empty .se-hint {
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    /* ---------- Status / language ---------- */
+    #status {
+      margin-top: var(--space-2);
+      font-size: 11px;
+      color: var(--danger);
+      text-align: center;
+      min-height: 14px;
+    }
     #lang-selector {
-      margin-top: 10px;
+      margin-top: var(--space-3);
       padding: 4px 6px;
-      border-radius: 6px;
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      background: rgba(26, 35, 50, 0.6);
-      color: #a3b1c6;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-1);
+      background: var(--surface-1);
+      color: var(--text-muted);
       font-size: 10px;
       cursor: pointer;
       width: auto;
     }
     #lang-selector:hover {
-      border-color: rgba(124, 156, 255, 0.4);
-      color: #e6e9ef;
+      border-color: rgba(29, 155, 240, 0.4);
+      color: var(--text-primary);
     }
-    
-    /* Coffee Support Banner */
+
+    /* ---------- Coffee banner (timed, warm) ---------- */
     #coffee-banner {
-      margin-top: 12px;
+      display: none;
+      margin-top: var(--space-3);
       padding: 10px 12px;
-      background: linear-gradient(135deg, #FFDD57, #FFA500);
-      border: 1px solid rgba(255, 165, 0, 0.3);
-      border-radius: 8px;
-      display: flex;
+      background: linear-gradient(135deg, var(--coffee-warm), #e6b32f);
+      border: 1px solid rgba(245, 200, 66, 0.45);
+      border-radius: var(--radius-md);
       align-items: center;
       justify-content: space-between;
-      gap: 8px;
-      animation: slideDown 0.3s ease-out;
+      gap: var(--space-2);
     }
-    
-    @keyframes slideDown {
-      from {
-        opacity: 0;
-        transform: translateY(-10px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
+    #coffee-banner.visible {
+      display: flex;
+      animation: slide-down 0.3s ease-out;
     }
-    
+    @keyframes slide-down {
+      from { opacity: 0; transform: translateY(-10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
     #coffee-banner-text {
       flex: 1;
       font-size: 11px;
       color: #1a1406;
       line-height: 1.4;
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
-    
+    #coffee-banner-text .icon { color: #1a1406; }
     #coffee-banner-actions {
       display: flex;
       gap: 6px;
     }
-    
     #coffee-banner-support {
       padding: 4px 10px;
       background: #1a1406;
-      color: #FFDD57;
+      color: var(--coffee-warm);
       border: none;
-      border-radius: 5px;
+      border-radius: var(--radius-sm);
       font-size: 10px;
       font-weight: 600;
-      cursor: pointer;
-      transition: transform 0.1s ease;
+      flex: none;
     }
-    
     #coffee-banner-support:hover {
-      transform: translateY(-1px);
+      background: #2a230d;
+      border-color: transparent;
     }
-    
     #coffee-banner-dismiss {
-      padding: 4px 8px;
+      padding: 4px;
       background: rgba(0, 0, 0, 0.1);
       color: #1a1406;
       border: none;
-      border-radius: 5px;
-      font-size: 10px;
-      cursor: pointer;
-      transition: background 0.2s ease;
+      border-radius: var(--radius-sm);
+      flex: none;
     }
-    
     #coffee-banner-dismiss:hover {
       background: rgba(0, 0, 0, 0.2);
+      border-color: transparent;
+      transform: none;
     }
-    
-    /* Coffee Footer Link */
-    #coffee-footer {
-      margin-top: 10px;
+
+    /* ---------- Auto-scroll active state ----------
+       Single pulse-glow channel (down from 4). Reduced-motion override
+       above disables the pulse entirely for sensitive users. */
+    @keyframes pulse-glow {
+      0%, 100% {
+        box-shadow: 0 0 0 0 rgba(255, 107, 107, 0), 0 4px 14px rgba(255, 107, 107, 0.35);
+      }
+      50% {
+        box-shadow: 0 0 0 4px rgba(255, 107, 107, 0.18), 0 6px 22px rgba(255, 107, 107, 0.50);
+      }
+    }
+    .scrolling-active {
+      background: linear-gradient(135deg, #ff6b6b, #ff5252) !important;
+      border-color: transparent !important;
+      color: #fff !important;
+      animation: pulse-glow 1.8s ease-in-out infinite;
+    }
+
+    /* ---------- Easter-egg "About the maker" overlay ----------
+       Logo click → glass-blur modal over the popup with the maker photo,
+       name, role, and email link. Esc / × / backdrop click closes. */
+    .about-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: var(--z-modal);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(8, 8, 16, 0.78);
+      backdrop-filter: blur(18px) saturate(140%);
+      -webkit-backdrop-filter: blur(18px) saturate(140%);
+      animation: about-fade-in 280ms cubic-bezier(0.32, 0.72, 0, 1);
+    }
+    .about-overlay.visible { display: flex; }
+    @keyframes about-fade-in {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+    .about-card {
+      position: relative;
       text-align: center;
+      padding: var(--space-4) var(--space-4) var(--space-3);
+      max-width: 290px;
+      width: 100%;
+      animation: about-card-in 380ms cubic-bezier(0.34, 1.56, 0.64, 1);
     }
-    
-    #coffee-link {
+    @keyframes about-card-in {
+      from { opacity: 0; transform: translateY(10px) scale(0.94); }
+      to   { opacity: 1; transform: translateY(0)   scale(1); }
+    }
+    .about-close {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 28px;
+      height: 28px;
+      min-height: 0;
+      padding: 0;
+      border-radius: 50%;
+      border: 1px solid var(--border-1);
+      background: var(--surface-2);
+      color: var(--text-muted);
+      font-size: 18px;
+      line-height: 1;
+      cursor: pointer;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 6px;
-      width: 100%;
-      padding: 8px 12px;
-      font-size: 11px;
-      font-weight: 500;
-      color: #f5c842;
-      text-decoration: none;
-      background: rgba(245, 200, 66, 0.08);
-      border: 1px solid rgba(245, 200, 66, 0.2);
-      border-radius: 8px;
-      transition: background 0.2s ease, border-color 0.2s ease;
-      box-sizing: border-box;
+      transition: background-color var(--t-fast), color var(--t-fast), transform var(--t-fast);
     }
-    
-    #coffee-link:hover {
-      background: rgba(245, 200, 66, 0.15);
-      border-color: rgba(245, 200, 66, 0.4);
+    .about-close:hover {
+      background: var(--surface-3);
+      color: var(--text-primary);
+      border-color: var(--border-2);
+      transform: rotate(90deg);
     }
-    
-    /* Auto Scroll Animation */
-    @keyframes pulse-glow {
-      0%, 100% {
-        box-shadow: 0 0 5px rgba(255, 107, 107, 0.4),
-                    0 0 10px rgba(255, 107, 107, 0.3),
-                    0 0 15px rgba(255, 107, 107, 0.2);
-        transform: scale(1);
-      }
-      50% {
-        box-shadow: 0 0 10px rgba(255, 107, 107, 0.6),
-                    0 0 20px rgba(255, 107, 107, 0.4),
-                    0 0 30px rgba(255, 107, 107, 0.3);
-        transform: scale(1.02);
-      }
-    }
-    
-    @keyframes gradient-shift {
-      0% {
-        background-position: 0% 50%;
-      }
-      50% {
-        background-position: 100% 50%;
-      }
-      100% {
-        background-position: 0% 50%;
-      }
-    }
-    
-    @keyframes dot-pulse {
-      0% {
-        box-shadow: 
-          0 0 0 0 rgba(255, 255, 255, 0.3),
-          6px 0 0 0 rgba(255, 255, 255, 0.95),
-          12px 0 0 0 rgba(255, 255, 255, 0.3);
-      }
-      33% {
-        box-shadow: 
-          0 0 0 0 rgba(255, 255, 255, 0.95),
-          6px 0 0 0 rgba(255, 255, 255, 0.3),
-          12px 0 0 0 rgba(255, 255, 255, 0.3);
-      }
-      66% {
-        box-shadow: 
-          0 0 0 0 rgba(255, 255, 255, 0.3),
-          6px 0 0 0 rgba(255, 255, 255, 0.3),
-          12px 0 0 0 rgba(255, 255, 255, 0.95);
-      }
-      100% {
-        box-shadow: 
-          0 0 0 0 rgba(255, 255, 255, 0.3),
-          6px 0 0 0 rgba(255, 255, 255, 0.95),
-          12px 0 0 0 rgba(255, 255, 255, 0.3);
-      }
-    }
-    
-    @keyframes shine {
-      0% {
-        left: -100%;
-      }
-      100% {
-        left: 200%;
-      }
-    }
-    
-    .scrolling-active {
-      background: linear-gradient(
-        270deg,
-        #ff6b6b,
-        #ff8787,
-        #ff5252,
-        #ff6b6b
-      );
-      background-size: 400% 400%;
-      animation: pulse-glow 2s ease-in-out infinite, gradient-shift 3s ease infinite;
-      position: relative;
-      overflow: hidden;
-      padding-left: 28px;
-    }
-    
-    /* Animated dots indicator */
-    .scrolling-active::before {
-      content: "";
-      position: absolute;
-      left: 10px;
-      top: 50%;
-      width: 4px;
-      height: 4px;
-      background: rgba(255, 255, 255, 0.3);
+    .about-avatar {
+      width: 116px;
+      height: 116px;
       border-radius: 50%;
-      transform: translateY(-50%);
-      animation: dot-pulse 1.5s ease-in-out infinite;
+      object-fit: cover;
+      border: 3px solid var(--x-blue);
+      box-shadow:
+        0 0 0 4px rgba(29, 155, 240, 0.15),
+        0 12px 32px var(--x-blue-glow);
+      margin: 0 auto var(--space-3);
+      display: block;
+      animation: about-avatar-in 520ms cubic-bezier(0.34, 1.56, 0.64, 1) 120ms backwards;
     }
-    
-    /* Shine effect */
-    .scrolling-active::after {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 50%;
-      height: 100%;
-      background: linear-gradient(
-        90deg,
-        transparent,
-        rgba(255, 255, 255, 0.2),
-        transparent
-      );
-      animation: shine 2s ease-in-out infinite;
+    @keyframes about-avatar-in {
+      from { opacity: 0; transform: scale(0.5) rotate(-12deg); }
+      to   { opacity: 1; transform: scale(1)   rotate(0deg); }
     }
+    .about-greeting {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 2px;
+      letter-spacing: 0.02em;
+    }
+    .about-name {
+      font-size: 17px;
+      font-weight: 800;
+      color: var(--text-primary);
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #fff 0%, #d4d4dc 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: var(--space-1);
+    }
+    .about-role {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: var(--space-3);
+    }
+    .about-email {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      border-radius: var(--radius-pill);
+      background: linear-gradient(135deg, var(--x-blue), var(--x-blue-dark));
+      color: #fff;
+      font-size: 12px;
+      font-weight: 600;
+      text-decoration: none;
+      box-shadow: 0 4px 14px var(--x-blue-glow);
+      transition: transform var(--t-spring), box-shadow var(--t-base);
+    }
+    .about-email:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 22px var(--x-blue-glow);
+    }
+    .about-email:active { transform: translateY(0); }
+    .about-thanks {
+      margin-top: var(--space-3);
+      font-size: 11px;
+      color: var(--text-muted);
+      font-style: italic;
+    }
+
+    /* ---------- Lucide-style SVG icons ---------- */
+    .icon {
+      width: 14px;
+      height: 14px;
+      stroke: currentColor;
+      stroke-width: 2;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      flex-shrink: 0;
+      vertical-align: middle;
+    }
+    .icon-sm { width: 12px; height: 12px; }
+    .icon-lg { width: 16px; height: 16px; }
   </style>
 </head>
 <body>
-  <h3>
-    <div class="header-left">
-      <span data-i18n="videoGallery">Video Gallery</span>
-      <span id="version"></span>
+  <!-- Lucide-style SVG icon sprite -->
+  <svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
+    <symbol id="i-coffee" viewBox="0 0 24 24">
+      <path d="M17 8h1a4 4 0 0 1 0 8h-1"/>
+      <path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/>
+      <line x1="6" y1="2" x2="6" y2="4"/>
+      <line x1="10" y1="2" x2="10" y2="4"/>
+      <line x1="14" y1="2" x2="14" y2="4"/>
+    </symbol>
+    <symbol id="i-x" viewBox="0 0 24 24">
+      <path d="M18 6L6 18M6 6l12 12"/>
+    </symbol>
+    <symbol id="i-chevrons-down" viewBox="0 0 24 24">
+      <path d="m7 6 5 5 5-5"/>
+      <path d="m7 13 5 5 5-5"/>
+    </symbol>
+    <symbol id="i-stop" viewBox="0 0 24 24">
+      <rect x="6" y="6" width="12" height="12" rx="2" fill="currentColor" stroke="none"/>
+    </symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24">
+      <rect x="3" y="3" width="7" height="7"/>
+      <rect x="14" y="3" width="7" height="7"/>
+      <rect x="14" y="14" width="7" height="7"/>
+      <rect x="3" y="14" width="7" height="7"/>
+    </symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24">
+      <polyline points="3 6 5 6 21 6"/>
+      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+    </symbol>
+    <symbol id="i-mail" viewBox="0 0 24 24">
+      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+      <polyline points="22,6 12,13 2,6"/>
+    </symbol>
+  </svg>
+
+  <main id="main-content">
+    <header class="header">
+      <button class="logo-btn" id="about-toggle" aria-label="About the maker" title="Click me">
+        <img class="logo" src="assets/icons/icon-128.png" alt="">
+      </button>
+      <h3 class="title">
+        <span data-i18n="videoGallery">Video Gallery</span>
+      </h3>
+      <span id="version" aria-label="Extension version"></span>
+    </header>
+
+    <div class="actions">
+      <div class="btn-row">
+        <button id="auto-scroll" class="btn-primary">
+          <svg class="icon" aria-hidden="true"><use href="#i-chevrons-down"/></svg>
+          <span class="btn-label" data-i18n="autoScroll">Auto Scroll</span>
+        </button>
+        <button id="open-gallery" class="btn-secondary">
+          <svg class="icon" aria-hidden="true"><use href="#i-grid"/></svg>
+          <span class="btn-label" data-i18n="openGallery">Open Gallery</span>
+        </button>
+      </div>
+      <button id="clear" class="btn-danger">
+        <svg class="icon icon-sm" aria-hidden="true"><use href="#i-trash"/></svg>
+        <span class="btn-label" data-i18n="clear">Clear</span>
+      </button>
     </div>
-    <button id="header-donate" data-i18n="donate">Donate</button>
-  </h3>
-  <div class="actions">
-    <button id="auto-scroll" data-i18n="autoScroll">Auto Scroll</button>
-    <button id="open-gallery" data-i18n="openGallery">Open Gallery</button>
-    <button id="clear" data-i18n="clear">Clear</button>
-  </div>
-  <div id="stats">
-    <div class="stat-card">
-      <span class="stat-value" id="video-count">-</span>
-      <span class="stat-label">Videos Captured</span>
+
+    <dl id="stats" class="stats" aria-label="Captured video count">
+      <div class="stat">
+        <dd class="stat-count" id="video-count">-</dd>
+        <dt class="stat-label">Videos Captured</dt>
+      </div>
+    </dl>
+
+    <div class="stats-empty" id="stats-empty" aria-live="polite">
+      <div class="se-title">No videos captured yet</div>
+      <div class="se-hint">Open X bookmarks and tap Auto Scroll to start.</div>
+    </div>
+
+    <select id="lang-selector" aria-label="Language">
+      <option value="en">English</option>
+      <option value="fr">Français</option>
+      <option value="de">Deutsch</option>
+      <option value="es">Español</option>
+    </select>
+
+    <div id="status" aria-live="polite"></div>
+
+    <!-- Timed coffee banner — shown after USAGE_THRESHOLD scrolls, then dismissible -->
+    <div id="coffee-banner" role="region" aria-label="Support the developer">
+      <div id="coffee-banner-text">
+        <svg class="icon" aria-hidden="true"><use href="#i-coffee"/></svg>
+        Enjoying this extension? Consider buying me a coffee!
+      </div>
+      <div id="coffee-banner-actions">
+        <button id="coffee-banner-support">Support me</button>
+        <button id="coffee-banner-dismiss" aria-label="Dismiss">
+          <svg class="icon icon-sm" aria-hidden="true"><use href="#i-x"/></svg>
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <!-- Easter-egg "About the maker" overlay — opened by clicking the logo. -->
+  <div id="about-overlay" class="about-overlay" hidden aria-hidden="true"
+       role="dialog" aria-modal="true" aria-labelledby="about-name-label">
+    <div class="about-card" role="document">
+      <button class="about-close" id="about-close" aria-label="Close">&times;</button>
+      <img class="about-avatar" src="assets/icons/maker.png" alt="Tomer Har Yoffi">
+      <div class="about-greeting">Hi, I'm</div>
+      <div class="about-name" id="about-name-label">Tomer Har Yoffi</div>
+      <div class="about-role">Maker of X Video Exporter</div>
+      <a class="about-email" href="mailto:tomer.haryoffi@gmail.com">
+        <svg class="icon icon-sm" aria-hidden="true"><use href="#i-mail"/></svg>
+        tomer.haryoffi@gmail.com
+      </a>
+      <div class="about-thanks">Thanks for using my extension!</div>
     </div>
   </div>
-  <select id="lang-selector">
-    <option value="en">English</option>
-    <option value="fr">Français</option>
-    <option value="de">Deutsch</option>
-    <option value="es">Español</option>
-  </select>
-  <div id="status"></div>
-  
-  <!-- One-time Coffee Banner (shown after 15 uses) -->
-  <div id="coffee-banner" style="display: none;">
-    <div id="coffee-banner-text">
-      ☕ Enjoying this extension? Consider buying me a coffee!
-    </div>
-    <div id="coffee-banner-actions">
-      <button id="coffee-banner-support">Support me</button>
-      <button id="coffee-banner-dismiss">✕</button>
-    </div>
-  </div>
-  
-  <!-- Passive Coffee Footer Link -->
-  <div id="coffee-footer">
-    <a id="coffee-link" href="#" target="_blank">
-      ☕ Buy Me a Coffee
-    </a>
-  </div>
-  
+
   <script src="i18n.js"></script>
   <script src="analytics.js"></script>
   <script src="popup.js"></script>

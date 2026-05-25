@@ -1,6 +1,5 @@
 const autoScrollBtn = document.getElementById("auto-scroll");
 const openGalleryBtn = document.getElementById("open-gallery");
-const donateBtn = document.getElementById("header-donate");
 const clearBtn = document.getElementById("clear");
 const videoCountEl = document.getElementById("video-count");
 const statusEl = document.getElementById("status");
@@ -9,7 +8,9 @@ const langSelector = document.getElementById("lang-selector");
 const coffeeBanner = document.getElementById("coffee-banner");
 const coffeeBannerSupport = document.getElementById("coffee-banner-support");
 const coffeeBannerDismiss = document.getElementById("coffee-banner-dismiss");
-const coffeeLink = document.getElementById("coffee-link");
+const aboutToggle = document.getElementById("about-toggle");
+const aboutOverlay = document.getElementById("about-overlay");
+const aboutClose = document.getElementById("about-close");
 const COFFEE_URL = "https://buymeacoffee.com/thyproduction";
 const USAGE_THRESHOLD = 15;
 
@@ -17,6 +18,18 @@ const USAGE_THRESHOLD = 15;
 
 const setStatus = (message) => {
   statusEl.textContent = message || "";
+};
+
+let _statusClearTimer = null;
+const flashStatus = (message, ms = 3000) => {
+  setStatus(message);
+  if (_statusClearTimer) clearTimeout(_statusClearTimer);
+  if (ms > 0) {
+    _statusClearTimer = setTimeout(() => {
+      setStatus("");
+      _statusClearTimer = null;
+    }, ms);
+  }
 };
 
 const withActiveTab = (cb) => {
@@ -28,15 +41,16 @@ const withActiveTab = (cb) => {
 };
 
 const updateAutoScrollButton = (running) => {
+  const labelEl = autoScrollBtn.querySelector(".btn-label");
+  const iconUse = autoScrollBtn.querySelector(".icon use");
   if (running) {
-    autoScrollBtn.textContent = I18n.getMessage("stopScroll", "Stop Scroll");
+    if (labelEl) labelEl.textContent = I18n.getMessage("stopScroll", "Stop Scroll");
+    if (iconUse) iconUse.setAttribute("href", "#i-stop");
     autoScrollBtn.classList.add("scrolling-active");
-    autoScrollBtn.style.borderColor = "rgba(255, 107, 107, 0.6)";
   } else {
-    autoScrollBtn.textContent = I18n.getMessage("autoScroll", "Auto Scroll");
+    if (labelEl) labelEl.textContent = I18n.getMessage("autoScroll", "Auto Scroll");
+    if (iconUse) iconUse.setAttribute("href", "#i-chevrons-down");
     autoScrollBtn.classList.remove("scrolling-active");
-    autoScrollBtn.style.background = "linear-gradient(180deg, #1a2332, #131a26)";
-    autoScrollBtn.style.borderColor = "rgba(255, 255, 255, 0.08)";
   }
 };
 
@@ -54,7 +68,7 @@ const trackUsageAndShowCoffeeBanner = () => {
       const newCount = data.usageCount + 1;
       chrome.storage.local.set({ usageCount: newCount });
       if (newCount >= USAGE_THRESHOLD && !data.coffeeBannerDismissed) {
-        coffeeBanner.style.display = "flex";
+        coffeeBanner.classList.add("visible");
       }
     }
   );
@@ -65,7 +79,7 @@ const openCoffeeLink = () => {
 };
 
 const dismissCoffeeBanner = () => {
-  coffeeBanner.style.display = "none";
+  coffeeBanner.classList.remove("visible");
   chrome.storage.local.set({ coffeeBannerDismissed: true });
 };
 
@@ -93,6 +107,7 @@ const updateVideoCount = () => {
   chrome.storage.local.get({ videoUrls: [] }, (data) => {
     const count = Array.isArray(data.videoUrls) ? data.videoUrls.length : 0;
     videoCountEl.textContent = count;
+    document.body.classList.toggle("is-empty", count === 0);
   });
 };
 
@@ -158,21 +173,38 @@ openGalleryBtn.onclick = () => {
   chrome.tabs.create({ url: chrome.runtime.getURL("gallery.html") });
 };
 
-donateBtn.onclick = () => {
-  if (window.Analytics) Analytics.trackButtonClick("donate", "popup");
-  chrome.tabs.create({ url: "https://www.patreon.com/join/THYProduction" });
+let _clearPending = false;
+let _clearPendingTimer = null;
+const _resetClearPending = () => {
+  _clearPending = false;
+  clearBtn.classList.remove("is-confirming");
+  if (_clearPendingTimer) {
+    clearTimeout(_clearPendingTimer);
+    _clearPendingTimer = null;
+  }
 };
 
 clearBtn.onclick = () => {
+  if (!_clearPending) {
+    chrome.storage.local.get({ videoUrls: [] }, (data) => {
+      const count = Array.isArray(data.videoUrls) ? data.videoUrls.length : 0;
+      if (!count) {
+        flashStatus(I18n.getMessage("nothingToClear", "Nothing to clear"));
+        return;
+      }
+      _clearPending = true;
+      clearBtn.classList.add("is-confirming");
+      flashStatus(I18n.getMessage("clearConfirm", "Click Clear again to confirm"), 5000);
+      _clearPendingTimer = setTimeout(_resetClearPending, 5000);
+    });
+    return;
+  }
   if (window.Analytics) Analytics.trackButtonClick("clear_urls", "popup");
+  _resetClearPending();
   chrome.runtime.sendMessage({ type: "CLEAR_URLS" });
   videoCountEl.textContent = "0";
-};
-
-coffeeLink.onclick = (e) => {
-  e.preventDefault();
-  if (window.Analytics) Analytics.trackButtonClick("coffee_footer", "popup");
-  openCoffeeLink();
+  document.body.classList.add("is-empty");
+  flashStatus(I18n.getMessage("cleared", "Cleared"));
 };
 
 coffeeBannerSupport.onclick = () => {
@@ -185,6 +217,34 @@ coffeeBannerDismiss.onclick = () => {
   if (window.Analytics) Analytics.trackButtonClick("coffee_banner_dismiss", "popup");
   dismissCoffeeBanner();
 };
+
+// ─── Easter-egg About overlay ─────────────────────────────────────────────────
+
+const openAbout = () => {
+  aboutOverlay.hidden = false;
+  aboutOverlay.classList.add("visible");
+  aboutOverlay.setAttribute("aria-hidden", "false");
+  aboutClose.focus();
+  if (window.Analytics) Analytics.trackButtonClick("about_open", "popup");
+};
+
+const closeAbout = () => {
+  aboutOverlay.classList.remove("visible");
+  aboutOverlay.setAttribute("aria-hidden", "true");
+  aboutOverlay.hidden = true;
+  aboutToggle.focus();
+};
+
+aboutToggle.onclick = openAbout;
+aboutClose.onclick = closeAbout;
+aboutOverlay.addEventListener("click", (e) => {
+  if (e.target === aboutOverlay) closeAbout();
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && aboutOverlay.classList.contains("visible")) {
+    closeAbout();
+  }
+});
 
 langSelector.onchange = async () => {
   const newLang = langSelector.value;

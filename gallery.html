@@ -2,11 +2,32 @@
 <html>
 <head>
   <meta charset="utf-8" />
+  <meta name="theme-color" content="#0b0f14" />
   <title>Video Gallery</title>
+  <link rel="stylesheet" href="tokens.css" />
   <style>
     :root {
       color-scheme: dark;
     }
+
+    /* Keyboard focus ring — visible against the cosmic bg */
+    *:focus-visible {
+      outline: 2px solid var(--x-blue);
+      outline-offset: 2px;
+      border-radius: 4px;
+    }
+
+    /* Honor users with motion sensitivity */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+      .card:hover { transform: none !important; }
+    }
+
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       margin: 0;
@@ -30,28 +51,11 @@
     }
     #version {
       font-size: 12px;
-      color: #7c9cff;
+      color: var(--x-blue);
       padding: 2px 8px;
       border-radius: 999px;
-      border: 1px solid rgba(124, 156, 255, 0.4);
-      background: rgba(124, 156, 255, 0.08);
-    }
-    #header-donate {
-      background: linear-gradient(180deg, #f2d27a, #caa13a);
-      color: #1a1406;
-      border-color: rgba(255, 221, 140, 0.8);
-      box-shadow: 0 8px 20px rgba(202, 161, 58, 0.35);
-      padding: 8px 16px;
-      border-radius: 10px;
-      border: 1px solid rgba(255, 221, 140, 0.8);
-      font-size: 13px;
-      letter-spacing: 0.2px;
-      cursor: pointer;
-      transition: transform 120ms ease, border-color 120ms ease;
-    }
-    #header-donate:hover {
-      border-color: rgba(255, 236, 180, 0.95);
-      transform: translateY(-1px);
+      border: 1px solid rgba(29, 155, 240, 0.4);
+      background: rgba(29, 155, 240, 0.08);
     }
     #layout {
       display: flex;
@@ -104,20 +108,23 @@
       z-index: 3;
     }
     .card-btn {
-      width: 28px;
-      height: 28px;
+      width: 36px;
+      height: 36px;
+      min-height: 0;
       border-radius: 8px;
       border: 1px solid rgba(255, 255, 255, 0.08);
       background: rgba(12, 16, 24, 0.7);
-      color: #e6e9ef;
+      color: var(--text-primary);
       cursor: pointer;
       box-shadow: none;
       padding: 0;
-      font-size: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       line-height: 1;
     }
     .card-btn:hover {
-      border-color: rgba(124, 156, 255, 0.6);
+      border-color: rgba(29, 155, 240, 0.6);
     }
     .quality-badge {
       position: absolute;
@@ -133,7 +140,7 @@
     }
     .card:hover {
       transform: translateY(-2px);
-      border-color: rgba(124, 156, 255, 0.55);
+      border-color: rgba(29, 155, 240, 0.55);
     }
     .thumb {
       width: 100%;
@@ -151,7 +158,7 @@
       padding: 2px 6px;
       font-size: 11px;
       color: #0b0f14;
-      background: linear-gradient(135deg, #7c9cff, #b4c5ff);
+      background: linear-gradient(135deg, var(--x-blue), #b4c5ff);
       border-radius: 999px;
     }
     .actions {
@@ -181,11 +188,25 @@
     }
     button:hover {
       transform: translateY(-1px);
-      border-color: rgba(124, 156, 255, 0.6);
+      border-color: rgba(29, 155, 240, 0.6);
     }
     #file-input { display: none; }
     #count { margin-top: 10px; font-size: 12px; color: #a3b1c6; }
-    #status { margin-top: 6px; font-size: 12px; color: #7c9cff; }
+    #status { margin-top: 6px; font-size: 12px; color: var(--x-blue); transition: color var(--t-fast); }
+    #status.is-danger { color: var(--danger); font-weight: 600; }
+
+    /* Clear button — "click again to confirm" pulse during the confirmation
+       window. Strong danger styling makes the armed state unmistakable. */
+    .is-confirming {
+      background: var(--danger) !important;
+      color: #fff !important;
+      border-color: var(--danger) !important;
+      animation: confirm-pulse 1.4s ease-in-out infinite;
+    }
+    @keyframes confirm-pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.45); }
+      50%      { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+    }
     #progress {
       margin-top: 6px;
       height: 6px;
@@ -197,7 +218,7 @@
     #progress-bar {
       height: 100%;
       width: 0%;
-      background: linear-gradient(90deg, #7c9cff, #c2d2ff);
+      background: linear-gradient(90deg, var(--x-blue), #c2d2ff);
       transition: width 120ms ease;
     }
     #lang-selector {
@@ -212,7 +233,7 @@
       width: 100%;
     }
     #lang-selector:hover {
-      border-color: rgba(124, 156, 255, 0.6);
+      border-color: rgba(29, 155, 240, 0.6);
     }
 
     /* ═══════════════════════════════════════════════════
@@ -240,9 +261,9 @@
     }
     .view-btn:hover { color: #e6e9ef; transform: none; border-color: transparent; }
     .view-btn.active-view {
-      background: rgba(124, 156, 255, 0.15);
-      border-color: rgba(124, 156, 255, 0.3);
-      color: #7c9cff;
+      background: rgba(29, 155, 240, 0.15);
+      border-color: rgba(29, 155, 240, 0.3);
+      color: var(--x-blue);
     }
 
     /* ═══════════════════════════════════════════════════
@@ -422,12 +443,12 @@
       color: rgba(0,212,255,0.55);
       margin-top: 3px;
     }
-    body.precog-mode button:not(.view-btn):not(#header-donate) {
+    body.precog-mode button:not(.view-btn) {
       background: rgba(0,12,26,0.85);
       border-color: rgba(0,212,255,0.18);
       color: #7dcfea;
     }
-    body.precog-mode button:not(.view-btn):not(#header-donate):hover {
+    body.precog-mode button:not(.view-btn):hover {
       border-color: rgba(0,212,255,0.55);
       box-shadow: 0 0 14px rgba(0,212,255,0.15);
       color: #00d4ff;
@@ -566,19 +587,116 @@
       0%   { opacity:0; clip-path: inset(0 0 100% 0); }
       100% { opacity:1; clip-path: inset(0 0 0%   0); }
     }
+
+    /* Empty state — replaces the grid when no videos are captured. */
+    .empty-state {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 48px 24px;
+      color: var(--text-muted);
+    }
+    .empty-state .es-icon {
+      width: 64px;
+      height: 64px;
+      margin: 0 auto 16px;
+      color: var(--x-blue);
+      opacity: 0.35;
+      animation: breathe 3.6s ease-in-out infinite;
+    }
+    @keyframes breathe {
+      0%, 100% { opacity: 0.28; transform: scale(1); }
+      50%      { opacity: 0.55; transform: scale(1.05); }
+    }
+    .empty-state h3 {
+      color: var(--text-primary);
+      margin: 0 0 8px;
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .empty-state p {
+      color: var(--text-muted);
+      margin: 0 auto;
+      max-width: 380px;
+      line-height: 1.55;
+      font-size: 13px;
+    }
+    /* Empty state: keep the actions panel reachable (Import etc.) — only
+       hide the video player + its overlay since there's nothing to play. */
+    body.is-empty #player,
+    body.is-empty .scanline-overlay { display: none; }
+
+    /* Stack viewer+grid on narrow viewports — was always horizontal before. */
+    @media (max-width: 1024px) {
+      #layout {
+        flex-direction: column;
+      }
+      #player-wrap {
+        position: relative;
+        top: 0;
+        flex: 1 1 auto;
+        max-width: 100%;
+        width: 100%;
+      }
+      #grid {
+        width: 100%;
+      }
+    }
+
+    /* Lucide-style SVG icons referenced from the inline sprite. */
+    .icon {
+      width: 16px;
+      height: 16px;
+      stroke: currentColor;
+      stroke-width: 2;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      flex-shrink: 0;
+      vertical-align: middle;
+    }
+    .icon-sm { width: 14px; height: 14px; }
+    .icon-lg { width: 20px; height: 20px; }
   </style>
 </head>
 <body>
+  <svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
+    <symbol id="i-grid" viewBox="0 0 24 24">
+      <rect x="3" y="3" width="7" height="7"/>
+      <rect x="14" y="3" width="7" height="7"/>
+      <rect x="14" y="14" width="7" height="7"/>
+      <rect x="3" y="14" width="7" height="7"/>
+    </symbol>
+    <symbol id="i-target" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="10"/>
+      <circle cx="12" cy="12" r="6"/>
+      <circle cx="12" cy="12" r="2"/>
+    </symbol>
+    <symbol id="i-x" viewBox="0 0 24 24">
+      <path d="M18 6L6 18M6 6l12 12"/>
+    </symbol>
+    <symbol id="i-download" viewBox="0 0 24 24">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+      <polyline points="7 10 12 15 17 10"/>
+      <line x1="12" y1="15" x2="12" y2="3"/>
+    </symbol>
+    <symbol id="i-film" viewBox="0 0 24 24">
+      <rect x="2" y="2" width="20" height="20" rx="2"/>
+      <line x1="7" y1="2" x2="7" y2="22"/>
+      <line x1="17" y1="2" x2="17" y2="22"/>
+      <line x1="2" y1="12" x2="22" y2="12"/>
+    </symbol>
+  </svg>
+
   <h2>
     <div class="header-left">
       <span data-i18n="videoGallery">Video Gallery</span>
       <span id="version"></span>
     </div>
     <div id="view-toggle" style="display:none">
-      <button class="view-btn active-view" id="btn-classic">⊞ Classic</button>
-      <button class="view-btn" id="btn-precog">◉ Bubble Mode</button>
+      <button class="view-btn active-view" id="btn-classic"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-grid"/></svg> Classic</button>
+      <button class="view-btn" id="btn-precog"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-target"/></svg> Bubble Mode</button>
     </div>
-    <button id="header-donate" data-i18n="donate">Donate</button>
   </h2>
   <div id="layout">
     <div id="player-wrap">
@@ -616,7 +734,7 @@
   <div id="bubble-modal">
     <div id="bubble-modal-bg"></div>
     <div id="bubble-modal-box">
-      <button id="bubble-modal-close">✕</button>
+      <button id="bubble-modal-close" aria-label="Close"><svg class="icon" aria-hidden="true"><use href="#i-x"/></svg></button>
       <video id="bubble-modal-video" controls playsinline></video>
     </div>
   </div>

@@ -1,0 +1,94 @@
+/* Shared design tokens for popup.html, gallery.html, and index.html.
+   Surface-specific overrides (button heights, --selected-glow opacity,
+   per-page glows, danger palette, etc.) live inline in each page's own
+   <style> block — they intentionally differ between the popup (compact),
+   the gallery (roomy), and the landing page (marketing-tuned) and
+   shouldn't be forced into a single value.
+
+   Introduced in the v1.4 UI refresh (Phase 1). Brand decision: keep the
+   existing cosmic dark surface but switch the primary accent from
+   cornflower (#7c9cff) to X's official brand blue (#1d9bf0) so the
+   extension reads as native to X.
+
+   --selected is intentionally NOT the brand blue — selection state must
+   stay distinct from primary CTAs, so we use violet here. */
+:root {
+  color-scheme: dark;
+
+  /* Brand — X */
+  --x-blue:         #1d9bf0;
+  --x-blue-hover:   #3aa9f5;
+  --x-blue-dark:    #1a8cd8;
+  --x-blue-soft:    rgba(29, 155, 240, 0.15);
+  --x-blue-glow:    rgba(29, 155, 240, 0.35);
+
+  /* Secondary brand accents — used sparingly for gradient endpoints and
+     the precog/bubble easter-egg mode. */
+  --x-cyan:         #00d4ff;
+  --x-purple:       #7856ff;
+
+  /* Semantic — selection/active intentionally separate from brand blue so
+     the primary CTA stays visually distinct from "you picked this". */
+  --selected:       #a78bfa;
+  --selected-glow:  rgba(167, 139, 250, 0.35);
+
+  /* Surfaces — flat dark base with translucent layers above. The base is
+     slightly cooler than IG's so it reads as "X dark" not "IG dark". */
+  --x-bg:           #0b0f14;
+  --surface-1:      rgba(255, 255, 255, 0.04);
+  --surface-2:      rgba(255, 255, 255, 0.08);
+  --surface-3:      rgba(255, 255, 255, 0.12);
+
+  /* Glass — backdrop-blur surfaces. Tinted toward the cool blue of --x-bg
+     so the glass looks like it belongs to the same world. */
+  --glass-bg:       rgba(20, 26, 38, 0.6);
+  --glass-border:   rgba(255, 255, 255, 0.10);
+  --glass-blur:     blur(20px) saturate(140%);
+
+  /* Text — all WCAG AA against --x-bg */
+  --text-primary:   #f6f7fb;
+  --text-secondary: #d4d4dc;
+  --text-muted:     #a8a8b8;
+  --text-dim:       #9090a4;
+
+  /* Borders */
+  --border-1:       rgba(255, 255, 255, 0.10);
+  --border-2:       rgba(255, 255, 255, 0.18);
+
+  /* Status colors */
+  --danger:         #ef4444;
+  --danger-soft:    rgba(239, 68, 68, 0.15);
+  --success:        #9ece6a;
+  --warning:        #ff9e64;
+
+  /* Coffee/donate banner — warm, distinct from brand blue so it reads
+     as a friendly aside, not a primary action. */
+  --coffee-warm:    #f5c842;
+  --coffee-soft:    rgba(245, 200, 66, 0.12);
+
+  /* Spacing scale (4/8px) — pages extend with --space-7 inline if needed */
+  --space-1:        4px;
+  --space-2:        8px;
+  --space-3:        12px;
+  --space-4:        16px;
+  --space-5:        24px;
+  --space-6:        32px;
+
+  /* Radii — pages extend with --radius-xl inline if needed */
+  --radius-sm:      8px;
+  --radius-md:      12px;
+  --radius-lg:      16px;
+  --radius-pill:    999px;
+
+  /* Motion — spring physics for hover overshoots */
+  --t-fast:         140ms cubic-bezier(0.4, 0, 0.2, 1);
+  --t-base:         220ms cubic-bezier(0.4, 0, 0.2, 1);
+  --t-spring:       320ms cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* Z-index scale — defined once here so nothing in the codebase has to
+     guess. */
+  --z-popover:      10;
+  --z-sticky:       20;
+  --z-modal:        100;
+  --z-fullscreen:   1000;
+}

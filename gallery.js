@@ -81,7 +81,14 @@ const applyMode = (mode, animate = false) => {
   }
 };
 
-btnClassic.onclick = () => {
+const _enterPrecogMode = (source = "button") => {
+  _bubbleModeEnterTime = Date.now();
+  applyMode("precog", true);
+  chrome.storage.local.set({ galleryMode: "precog" });
+  if (window.Analytics) Analytics.sendEvent("gallery_mode_switch", { mode: "precog", source, bubble_count: _bubbles.length });
+};
+
+const _exitPrecogMode = (source = "button") => {
   if (_bubbleModeEnterTime && window.Analytics) {
     Analytics.sendEvent("bubble_mode_session", {
       time_spent_sec: Math.round((Date.now() - _bubbleModeEnterTime) / 1000),
@@ -91,15 +98,21 @@ btnClassic.onclick = () => {
   }
   applyMode("classic", true);
   chrome.storage.local.set({ galleryMode: "classic" });
-  if (window.Analytics) Analytics.sendEvent("gallery_mode_switch", { mode: "classic" });
+  if (window.Analytics) Analytics.sendEvent("gallery_mode_switch", { mode: "classic", source });
 };
 
-btnPrecog.onclick = () => {
-  _bubbleModeEnterTime = Date.now();
-  applyMode("precog", true);
-  chrome.storage.local.set({ galleryMode: "precog" });
-  if (window.Analytics) Analytics.sendEvent("gallery_mode_switch", { mode: "precog", bubble_count: _bubbles.length });
-};
+btnClassic.onclick = () => _exitPrecogMode("button");
+btnPrecog.onclick  = () => _enterPrecogMode("button");
+
+// Easter-egg hotkey: Cmd+Shift+B (Mac) / Ctrl+Shift+B (Win/Linux) toggles Bubble Mode.
+document.addEventListener("keydown", (e) => {
+  if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key && e.key.toLowerCase() === "b") {
+    e.preventDefault();
+    const isPrecog = document.body.classList.contains("precog-mode");
+    if (isPrecog) _exitPrecogMode("hotkey");
+    else _enterPrecogMode("hotkey");
+  }
+});
 // ─────────────────────────────────────────────────────────────────────────────
 
 // ─── 2D Canvas Bubble Renderer ───────────────────────────────────────────────
@@ -435,7 +448,6 @@ const copyBtn = document.getElementById("copy");
 const clearBtn = document.getElementById("clear");
 const exportBtn = document.getElementById("export");
 const importBtn = document.getElementById("import");
-const donateBtn = document.getElementById("header-donate");
 const mp4OnlyToggle = document.getElementById("mp4-only");
 const countEl = document.getElementById("count");
 const statusEl = document.getElementById("status");
@@ -528,6 +540,21 @@ const setPlayer = (url, cardEl) => {
 
 const setStatus = (message) => {
   statusEl.textContent = message || "";
+};
+
+/** Show a transient status message that auto-clears. kind="danger" tints red. */
+let _statusClearTimer = null;
+const flashStatus = (message, ms = 3000, kind = "info") => {
+  setStatus(message);
+  statusEl.classList.toggle("is-danger", kind === "danger");
+  if (_statusClearTimer) clearTimeout(_statusClearTimer);
+  if (ms > 0) {
+    _statusClearTimer = setTimeout(() => {
+      setStatus("");
+      statusEl.classList.remove("is-danger");
+      _statusClearTimer = null;
+    }, ms);
+  }
 };
 
 const setProgress = (value) => {
@@ -721,14 +748,24 @@ const renderGrid = (raw) => {
   const items = normalizeVideoItems(Array.isArray(raw) ? raw : []);
   grid.innerHTML = "";
   if (!items.length) {
+    document.body.classList.add("is-empty");
     const empty = document.createElement("div");
-    empty.textContent = I18n.getMessage("noVideosYet", "No videos captured yet.");
-    empty.style.fontSize = "13px";
-    empty.style.color = "#666";
+    empty.className = "empty-state";
+    empty.innerHTML = `
+      <svg class="es-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <rect x="2" y="2" width="20" height="20" rx="2"/>
+        <line x1="7" y1="2" x2="7" y2="22"/>
+        <line x1="17" y1="2" x2="17" y2="22"/>
+        <line x1="2" y1="12" x2="22" y2="12"/>
+      </svg>
+      <h3>${I18n.getMessage("noVideosYet", "No videos captured yet")}</h3>
+      <p>${I18n.getMessage("noVideosHint", "Open X bookmarks and tap Auto Scroll in the popup to start capturing.")}</p>
+    `;
     grid.appendChild(empty);
     countEl.textContent = `${I18n.getMessage("videos", "Videos")}: 0 (${I18n.getMessage("urls", "URLs")}: 0)`;
     return;
   }
+  document.body.classList.remove("is-empty");
 
   const grouped = new Map();
   items.forEach((item) => {
@@ -764,8 +801,10 @@ const renderGrid = (raw) => {
     const downloadBtn = document.createElement("button");
     downloadBtn.className = "card-btn";
     downloadBtn.type = "button";
-    downloadBtn.title = I18n.getMessage("downloadMp4", "Download MP4");
-    downloadBtn.textContent = "⬇";
+    const dlLabel = I18n.getMessage("downloadMp4", "Download MP4");
+    downloadBtn.title = dlLabel;
+    downloadBtn.setAttribute("aria-label", dlLabel);
+    downloadBtn.innerHTML = `<svg class="icon" aria-hidden="true"><use href="#i-download"/></svg>`;
     cardActions.appendChild(downloadBtn);
 
     const thumb = document.createElement("video");
@@ -856,8 +895,6 @@ const renderGrid = (raw) => {
     });
 
     grid.appendChild(card);
-
-    if (index === 0) setPlayer(url, card);
   });
 
   // Update HUD count for precog mode
@@ -894,8 +931,13 @@ copyBtn.onclick = () => {
   if (window.Analytics) Analytics.trackButtonClick("copy_urls", "gallery");
   chrome.storage.local.get({ videoUrls: [] }, (data) => {
     const lines = normalizeVideoItems(data.videoUrls || []).map((x) => x.url);
-    const text = lines.join("\n");
-    navigator.clipboard.writeText(text).catch(() => {});
+    if (!lines.length) {
+      flashStatus(I18n.getMessage("nothingToCopy", "Nothing to copy"));
+      return;
+    }
+    navigator.clipboard.writeText(lines.join("\n"))
+      .then(() => flashStatus(`${I18n.getMessage("copiedToClipboard", "Copied to clipboard")} (${lines.length})`))
+      .catch(() => flashStatus(I18n.getMessage("copyFailed", "Failed to copy to clipboard")));
   });
 };
 
@@ -903,6 +945,10 @@ exportBtn.onclick = () => {
   if (window.Analytics) Analytics.trackButtonClick("export_urls", "gallery");
   chrome.storage.local.get({ videoUrls: [] }, (data) => {
     const lines = normalizeVideoItems(data.videoUrls || []).map((x) => x.url);
+    if (!lines.length) {
+      flashStatus(I18n.getMessage("nothingToExport", "Nothing to export"));
+      return;
+    }
     const text = lines.join("\n");
     const blob = new Blob([text], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
@@ -913,6 +959,7 @@ exportBtn.onclick = () => {
     link.click();
     link.remove();
     URL.revokeObjectURL(url);
+    flashStatus(`${I18n.getMessage("exportedUrls", "Exported")} ${lines.length} URLs`);
   });
 };
 
@@ -920,11 +967,6 @@ importBtn.onclick = () => {
   if (window.Analytics) Analytics.trackButtonClick("import_urls", "gallery");
   fileInput.value = "";
   fileInput.click();
-};
-
-donateBtn.onclick = () => {
-  if (window.Analytics) Analytics.trackButtonClick("donate", "gallery");
-  window.open("https://www.patreon.com/join/THYProduction", "_blank");
 };
 
 fileInput.onchange = () => {
@@ -943,18 +985,52 @@ fileInput.onchange = () => {
     const videoUrls = urlLines.map((u) => ({ url: u }));
     chrome.storage.local.set({ videoUrls }, () => {
       renderGrid(videoUrls);
+      flashStatus(`${I18n.getMessage("importedUrls", "Imported")} ${urlLines.length} URLs`);
     });
   };
+  reader.onerror = () => flashStatus(I18n.getMessage("importFailed", "Failed to read file"));
   reader.readAsText(file);
 };
 
+let _clearPending = false;
+let _clearPendingTimer = null;
+const _resetClearPending = () => {
+  _clearPending = false;
+  clearBtn.classList.remove("is-confirming");
+  if (_clearPendingTimer) {
+    clearTimeout(_clearPendingTimer);
+    _clearPendingTimer = null;
+  }
+};
+
 clearBtn.onclick = () => {
+  if (!_clearPending) {
+    // First click — arm the confirmation. Don't clear yet.
+    chrome.storage.local.get({ videoUrls: [] }, (data) => {
+      const count = normalizeVideoItems(data.videoUrls || []).length;
+      if (!count) {
+        flashStatus(I18n.getMessage("nothingToClear", "Nothing to clear"));
+        return;
+      }
+      _clearPending = true;
+      clearBtn.classList.add("is-confirming");
+      flashStatus(I18n.getMessage("clearConfirm", "Click Clear again to confirm"), 5000, "danger");
+      _clearPendingTimer = setTimeout(_resetClearPending, 5000);
+    });
+    return;
+  }
+  // Second click within the window — actually clear.
   if (window.Analytics) Analytics.trackButtonClick("clear_urls", "gallery");
-  chrome.runtime.sendMessage({ type: "CLEAR_URLS" });
-  stopBubbles();
-  renderGrid([]);
-  player.removeAttribute("src");
-  player.load();
+  chrome.storage.local.get({ videoUrls: [] }, (data) => {
+    const count = normalizeVideoItems(data.videoUrls || []).length;
+    _resetClearPending();
+    chrome.runtime.sendMessage({ type: "CLEAR_URLS" });
+    stopBubbles();
+    renderGrid([]);
+    player.removeAttribute("src");
+    player.load();
+    flashStatus(`${I18n.getMessage("clearedAll", "Cleared")} ${count} ${count === 1 ? "video" : "videos"}`);
+  });
 };
 
 chrome.storage.onChanged.addListener((changes, areaName) => {
