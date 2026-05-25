@@ -4,3 +4,4 @@ node_modules/
 dist/
 Archive*.zip
 tech-debt/
+screenshots/smoke-*.png

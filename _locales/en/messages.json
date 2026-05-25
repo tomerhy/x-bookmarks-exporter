@@ -3,7 +3,7 @@
     "message": "X Video URL Exporter"
   },
   "extDescription": {
-    "message": "Extract and export video URLs from X (Twitter)"
+    "message": "Download videos from your X (Twitter) bookmarks. Auto-scroll capture, gallery preview, one-click MP4/HLS download."
   },
   "videoGallery": {
     "message": "Video Gallery"
