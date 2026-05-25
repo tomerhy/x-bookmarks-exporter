@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet" />
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      width: 1200px;
+      height: 630px;
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: linear-gradient(135deg, #0d0d12 0%, #1a1a2e 50%, #0f0f23 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Background effects */
+    .bg-glow {
+      position: absolute;
+      width: 600px;
+      height: 600px;
+      border-radius: 50%;
+      filter: blur(120px);
+      opacity: 0.4;
+    }
+
+    .glow-1 {
+      background: #7aa2f7;
+      top: -200px;
+      left: -100px;
+    }
+
+    .glow-2 {
+      background: #bb9af7;
+      bottom: -200px;
+      right: -100px;
+    }
+
+    .glow-3 {
+      background: #f7768e;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 400px;
+      height: 400px;
+      opacity: 0.2;
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      gap: 60px;
+      padding: 60px;
+    }
+
+    .left {
+      flex: 1;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(158, 206, 106, 0.15);
+      border: 1px solid rgba(158, 206, 106, 0.4);
+      color: #9ece6a;
+      padding: 8px 16px;
+      border-radius: 100px;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 24px;
+    }
+
+    .badge::before {
+      content: '✓';
+    }
+
+    h1 {
+      font-size: 52px;
+      font-weight: 900;
+      color: #fff;
+      line-height: 1.1;
+      margin-bottom: 20px;
+    }
+
+    h1 span {
+      background: linear-gradient(135deg, #7aa2f7, #bb9af7);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .subtitle {
+      font-size: 22px;
+      color: #9898a8;
+      line-height: 1.5;
+      margin-bottom: 32px;
+    }
+
+    .stats {
+      display: flex;
+      gap: 32px;
+    }
+
+    .stat {
+      text-align: left;
+    }
+
+    .stat-number {
+      font-size: 36px;
+      font-weight: 700;
+      color: #7aa2f7;
+    }
+
+    .stat-label {
+      font-size: 14px;
+      color: #6b6b7a;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .right {
+      position: relative;
+    }
+
+    .phone-frame {
+      width: 280px;
+      height: 400px;
+      background: #14141b;
+      border-radius: 24px;
+      border: 3px solid #2a2a38;
+      padding: 16px;
+      box-shadow: 0 40px 80px rgba(0, 0, 0, 0.5), 0 0 60px rgba(122, 162, 247, 0.15);
+      transform: rotate(3deg);
+    }
+
+    .phone-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .phone-logo {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .phone-logo img {
+      width: 100%;
+      height: 100%;
+    }
+
+    .phone-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .video-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+
+    .video-card {
+      background: #1a1a24;
+      border-radius: 8px;
+      height: 70px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .video-card::after {
+      content: '▶';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: rgba(255, 255, 255, 0.6);
+      font-size: 16px;
+    }
+
+    .quality-badge {
+      position: absolute;
+      top: 4px;
+      left: 4px;
+      background: linear-gradient(135deg, #7aa2f7, #bb9af7);
+      color: #0d0d12;
+      font-size: 9px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .download-arrow {
+      position: absolute;
+      bottom: -30px;
+      right: -30px;
+      width: 100px;
+      height: 100px;
+      background: linear-gradient(135deg, #9ece6a, #7ec65a);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+      color: #0d0d12;
+      box-shadow: 0 10px 40px rgba(158, 206, 106, 0.4);
+      animation: bounce 2s infinite;
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    .corner-badge {
+      position: absolute;
+      top: 30px;
+      right: 30px;
+      background: #f7768e;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      padding: 8px 16px;
+      border-radius: 8px;
+      transform: rotate(5deg);
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-glow glow-1"></div>
+  <div class="bg-glow glow-2"></div>
+  <div class="bg-glow glow-3"></div>
+
+  <div class="corner-badge">FREE</div>
+
+  <div class="container">
+    <div class="left">
+      <div class="badge">Chrome Extension</div>
+      <h1>Stop Losing Your<br><span>X Bookmarks</span></h1>
+      <p class="subtitle">Auto-download all your bookmarked videos<br>before they disappear forever.</p>
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-number">1-Click</div>
+          <div class="stat-label">Download</div>
+        </div>
+        <div class="stat">
+          <div class="stat-number">MP4</div>
+          <div class="stat-label">Format</div>
+        </div>
+        <div class="stat">
+          <div class="stat-number">100%</div>
+          <div class="stat-label">Private</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="right">
+      <div class="phone-frame">
+        <div class="phone-header">
+          <div class="phone-logo"><img src="../assets/icons/icon-128.png" alt="" /></div>
+          <div class="phone-title">Video Gallery</div>
+        </div>
+        <div class="video-grid">
+          <div class="video-card"><span class="quality-badge">1080p</span></div>
+          <div class="video-card"><span class="quality-badge">720p</span></div>
+          <div class="video-card"><span class="quality-badge">1080p</span></div>
+          <div class="video-card"><span class="quality-badge">1080p</span></div>
+          <div class="video-card"><span class="quality-badge">720p</span></div>
+          <div class="video-card"><span class="quality-badge">1080p</span></div>
+        </div>
+      </div>
+      <div class="download-arrow">⬇</div>
+    </div>
+  </div>
+</body>
+</html>
